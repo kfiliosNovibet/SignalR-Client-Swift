@@ -19,8 +19,17 @@ public class HttpConnection: Connection {
 
     private var transportDelegate: TransportDelegate?
 
-    private var state: State
-    private var transport: Transport?
+    private var state: State {
+        didSet {
+            delegate?.connectionStateDidChange(state: state)
+        }
+    }
+    private var transport: Transport?{
+        didSet {
+            guard let transport = transport else { return }
+            delegate?.connectionTransportDidChange(transport: transport)
+        }
+    }
     private var stopError: Error?
 
     public weak var delegate: ConnectionDelegate?
@@ -29,7 +38,7 @@ public class HttpConnection: Connection {
         return transport?.inherentKeepAlive ?? true
     }
 
-    private enum State: String {
+    public enum State: String {
         case initial = "initial"
         case connecting = "connecting"
         case connected = "connected"
@@ -186,6 +195,14 @@ public class HttpConnection: Connection {
         options.callbackQueue.async {
             self.delegate?.connectionDidFailToOpen(error: error)
         }
+    }
+    
+    public func getTransport() -> Transport? {
+        return transport
+    }
+    
+    public func getState() -> State {
+        return state
     }
 
     public func send(data: Data, sendDidComplete: @escaping (_ error: Error?) -> Void) {

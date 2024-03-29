@@ -15,9 +15,13 @@ public protocol ConnectionDelegate: AnyObject {
     func connectionDidClose(error: Error?)
     func connectionWillReconnect(error: Error)
     func connectionDidReconnect()
+    func connectionStateDidChange(state: HttpConnection.State)
+    func connectionTransportDidChange(transport: Transport)
 }
 
 public extension ConnectionDelegate {
     func connectionWillReconnect(error: Error) {}
     func connectionDidReconnect() {}
+    func connectionStateDidChange(state: HttpConnection.State) {}
+    func connectionTransportDidChange(transport: Transport) {}
 }

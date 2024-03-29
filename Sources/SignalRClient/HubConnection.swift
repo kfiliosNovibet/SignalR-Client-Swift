@@ -31,6 +31,7 @@ public class HubConnection {
     private var keepAlivePingTask: DispatchWorkItem?
 
     private let callbackQueue: DispatchQueue
+    fileprivate var transport: Transport?
 
     /**
     Allows setting a delegate that will be notified about connection lifecycle events
@@ -339,6 +340,7 @@ public class HubConnection {
     }
 
     private func ensureConnectionStarted(errorHandler: @escaping (Error)->Void) -> Bool {
+        guard transport is WebsocketsTransport else { return true }
         guard handshakeStatus.isHandled else {
             logger.log(logLevel: .error, message: "Attempting to send data before connection has been started.")
             callbackQueue.async {
@@ -555,6 +557,14 @@ public class HubConnection {
 }
 
 fileprivate class HubConnectionConnectionDelegate: ConnectionDelegate {
+    func connectionStateDidChange(state: HttpConnection.State) {
+        
+    }
+    
+    func connectionTransportDidChange(transport: Transport) {
+        self.hubConnection?.transport = transport
+    }
+    
     private weak var hubConnection: HubConnection?
     init(hubConnection: HubConnection) {
         self.hubConnection = hubConnection

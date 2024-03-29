@@ -177,6 +177,10 @@ internal class ReconnectableConnection: Connection {
     }
 
     private class ReconnectableConnectionDelegate: ConnectionDelegate {
+        func connectionStateDidChange(state: HttpConnection.State) {}
+        
+        func connectionTransportDidChange(transport: Transport) {}
+        
         private weak var connection: ReconnectableConnection?
 
         init(connection: ReconnectableConnection) {
