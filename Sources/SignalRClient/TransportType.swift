@@ -16,7 +16,6 @@ public struct TransportType: OptionSet {
     }
 
     public static let longPolling = TransportType(rawValue: 1 << 0)
-    static let serverSentEvents = TransportType(rawValue: 1 << 1) // Not supported
     public static let webSockets = TransportType(rawValue: 1 << 2)
     
     public static let all: TransportType = [ .longPolling, .webSockets ]
@@ -28,7 +27,7 @@ extension TransportType {
         case "WebSockets":
             return TransportType.webSockets
         case "ServerSentEvents":
-            return TransportType.serverSentEvents
+            fallthrough
         case "LongPolling":
             return TransportType.longPolling
         default:
