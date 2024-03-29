@@ -24,7 +24,7 @@ public class HubConnection {
     private let logger: Logger
 
     private var connection: Connection
-    private weak var connectionDelegate: HubConnectionConnectionDelegate?
+    private var connectionDelegate: HubConnectionConnectionDelegate?
     private var hubProtocol: HubProtocol
 
     private let keepAliveIntervalInSeconds: Double?
@@ -340,7 +340,6 @@ public class HubConnection {
     }
 
     private func ensureConnectionStarted(errorHandler: @escaping (Error)->Void) -> Bool {
-        guard transport is WebsocketsTransport else { return true }
         guard handshakeStatus.isHandled else {
             logger.log(logLevel: .error, message: "Attempting to send data before connection has been started.")
             callbackQueue.async {
