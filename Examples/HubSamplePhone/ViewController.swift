@@ -11,7 +11,7 @@ import SignalRClient
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     // Update the Url accordingly
-    private let serverUrl = "http://192.168.2.28:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
+    private let serverUrl = "http://10.130.80.185:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
     private let dispatchQueue = DispatchQueue(label: "hubsamplephone.queue.dispatcheueuq")
 
     private var chatHubConnection: HubConnection?
@@ -39,16 +39,20 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 DispatchQueue.global().asyncAfter(deadline: .now() + randomTimeAwait) { [weak self] in
                     guard let self else { return }
                     self.chatHubConnectionDelegate = ChatHubConnectionDelegate(controller: self)
-                    self.chatHubConnection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
+                    let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
                         .withLogging(minLogLevel: .debug)
                         .withAutoReconnect()
                         .withHubConnectionDelegate(delegate: self.chatHubConnectionDelegate!)
                         .build()
-                    
-                    self.chatHubConnection!.on(method: "NewMessage", callback: {(user: String, message: String) in
+                    self.chatHubConnection = connection
+                    self.chatHubConnection!.on(method: "NewMessage", callback: {[weak self] (user: String, message: String) in
+                        guard let self else { return }
                         self.appendMessage(message: "\(user): \(message)")
                     })
                     self.chatHubConnection!.start()
+                    DispatchQueue.global().asyncAfter(deadline: .now() + 3) {
+                        connection.stop()
+                    }
                 }
             }
         }

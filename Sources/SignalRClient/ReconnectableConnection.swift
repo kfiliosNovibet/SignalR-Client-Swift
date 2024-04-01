@@ -104,7 +104,8 @@ internal class ReconnectableConnection: Connection {
             let initialStates = from?.map{$0.rawValue}.joined(separator: ", ") ?? "(nil)"
             return "Attempting to change state from: '\(initialStates)' to: '\(to)'"
         }())
-        connectionQueue.sync {
+        connectionQueue.sync { [weak self] in
+            guard let self else { return }
             if from?.contains(self.state) ?? true {
                 previousState = self.state
                 state = to
@@ -124,7 +125,8 @@ internal class ReconnectableConnection: Connection {
             if nextAttemptInterval != .never {
                 logger.log(logLevel: .debug, message: "Scheduling reconnect attempt at: \(nextAttemptInterval)")
                 // TODO: not great but running on the connectionQueue deadlocks
-                DispatchQueue.main.asyncAfter(deadline: .now() + nextAttemptInterval) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + nextAttemptInterval) { [weak self] in
+                    guard let self else { return }
                     self.startInternal()
                 }
                 // running on a random (possibly main) queue but HubConnection will
@@ -152,7 +154,8 @@ internal class ReconnectableConnection: Connection {
     private func updateAndCreateRetryContext(error: Error?) -> RetryContext {
         var attemptsCount = -1
         var startTime = Date()
-        connectionQueue.sync {
+        connectionQueue.sync { [weak self] in
+            guard let self else { return }
             attemptsCount = self.failedAttemptsCount
             if attemptsCount == 0 {
                 self.reconnectStartTime = Date()
@@ -170,7 +173,8 @@ internal class ReconnectableConnection: Connection {
     }
 
     private func resetRetryAttempts() {
-        connectionQueue.sync {
+        connectionQueue.sync { [weak self] in
+            guard let self else { return }
             self.failedAttemptsCount = 0
             // no need to reset start time - it will be set next time reconnect happens
         }

@@ -59,7 +59,8 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
     }
 
     private func readMessage()  {
-        webSocketTask?.receive { result in
+        webSocketTask?.receive { [weak self] result in
+            guard let self else { return }
             switch result {
             case .failure(let error):
                 // This failure always occurs when the task is cancelled. If the code
@@ -151,7 +152,8 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
     private func markTransportClosed() -> Bool {
         logger.log(logLevel: .debug, message: "Marking transport as closed.")
         var previousCloseStatus = false
-        dispatchQueue.sync {
+        dispatchQueue.sync { [weak self] in
+            guard let self else { return }
             previousCloseStatus = isTransportClosed
             isTransportClosed = true
         }

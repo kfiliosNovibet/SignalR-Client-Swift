@@ -102,7 +102,8 @@ public class HttpConnection: Connection {
         }
 
         let httpClient = options.httpClientFactory(options)
-        httpClient.post(url: negotiateUrl, body: nil) {httpResponse, error in
+        httpClient.post(url: negotiateUrl, body: nil) { [weak self] httpResponse, error in
+            guard let self else { return }
             if let e = error {
                 self.logger.log(logLevel: .error, message: "Negotiate failed due to: \(e))")
                 self.failOpenWithError(error: e, changeState: true)
@@ -148,16 +149,16 @@ public class HttpConnection: Connection {
 
     private func startTransport(connectionId: String?, connectionToken: String?) {
         // connection is being stopped even though start has not finished yet
-        if (self.state != .connecting) {
-            self.logger.log(logLevel: .info, message: "Connection closed during negotiate")
-            self.failOpenWithError(error: SignalRError.connectionIsBeingClosed, changeState: false)
+        if (state != .connecting) {
+            logger.log(logLevel: .info, message: "Connection closed during negotiate")
+            failOpenWithError(error: SignalRError.connectionIsBeingClosed, changeState: false)
             return
         }
 
-        let startUrl = self.createStartUrl(connectionId: connectionToken ?? connectionId)
-        self.transportDelegate = ConnectionTransportDelegate(connection: self, connectionId: connectionId)
-        self.transport!.delegate = self.transportDelegate
-        self.transport!.start(url: startUrl, options: self.options)
+        let startUrl = createStartUrl(connectionId: connectionToken ?? connectionId)
+        transportDelegate = ConnectionTransportDelegate(connection: self, connectionId: connectionId)
+        transport!.delegate = self.transportDelegate
+        transport!.start(url: startUrl, options: self.options)
     }
 
     private func createNegotiateUrl() -> URL {
