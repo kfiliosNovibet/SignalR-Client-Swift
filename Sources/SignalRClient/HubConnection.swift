@@ -610,6 +610,7 @@ fileprivate class HubConnectionConnectionDelegate: ConnectionDelegate {
  */
 public class ArgumentExtractor {
     let clientInvocationMessage: ClientInvocationMessage
+    let argumentsDict: [[String: Any]]
 
     /**
      Initializes an `ArgumentExtractor` with the received `ClientInvocationMessage`.
@@ -618,6 +619,7 @@ public class ArgumentExtractor {
      */
     init(clientInvocationMessage: ClientInvocationMessage) {
         self.clientInvocationMessage = clientInvocationMessage
+        self.argumentsDict = clientInvocationMessage.messageDict[ClientInvocationMessage.CodingKeys.arguments.rawValue]  as? [[String: Any]] ?? []
     }
 
     /**
@@ -631,6 +633,14 @@ public class ArgumentExtractor {
      */
     public func getArgument<T: Decodable>(type: T.Type) throws -> T {
         return try clientInvocationMessage.getArgument(type: type)
+    }
+    
+    
+    
+    /// This methods returns json arguments payload as dict in order to handle it with more generic way in application
+    /// - Returns: arguments dictionarys
+    public func getArgumentsDicts() -> [[String: Any]] {
+        return argumentsDict
     }
 
     /**

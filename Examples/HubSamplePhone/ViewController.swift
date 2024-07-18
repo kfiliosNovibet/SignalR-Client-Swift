@@ -9,9 +9,14 @@
 import UIKit
 import SignalRClient
 
+struct MessageData: Decodable {
+    let user: String
+    let message: String
+}
+
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     // Update the Url accordingly
-    private let serverUrl = "http://10.130.80.185:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
+    private let serverUrl = "http://192.168.1.128:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
     private let dispatchQueue = DispatchQueue(label: "hubsamplephone.queue.dispatcheueuq")
 
     private var chatHubConnection: HubConnection?
@@ -34,10 +39,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let alert = UIAlertController(title: "Enter your Name", message:"", preferredStyle: UIAlertController.Style.alert)
         alert.addTextField() { textField in textField.placeholder = "Name"}
         let OKAction = UIAlertAction(title: "OK", style: .default) { action in
-            (1...10).forEach { item in
-                let randomTimeAwait = Double.random(in: 0.5..<0.7) * Double(Int.random(in: 1..<7))
-                DispatchQueue.global().asyncAfter(deadline: .now() + randomTimeAwait) { [weak self] in
-                    guard let self else { return }
+            //This ( iteration below )  is for memroy leak test
+//            (1...100).forEach { item in
+//                let randomTimeAwait = Double.random(in: 0.5..<0.7) * Double(Int.random(in: 1..<7))
+//                DispatchQueue.global().asyncAfter(deadline: .now() + randomTimeAwait) { [weak self] in
+//                    guard let self else { return }
                     self.chatHubConnectionDelegate = ChatHubConnectionDelegate(controller: self)
                     let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
                         .withLogging(minLogLevel: .debug)
@@ -45,16 +51,22 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                         .withHubConnectionDelegate(delegate: self.chatHubConnectionDelegate!)
                         .build()
                     self.chatHubConnection = connection
-                    self.chatHubConnection!.on(method: "NewMessage", callback: {[weak self] (user: String, message: String) in
-                        guard let self else { return }
-                        self.appendMessage(message: "\(user): \(message)")
+                    self.chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
+                        do {
+                            let messageData = try data.getArgument(type: MessageData.self)
+                            guard let self else { return }
+                            let test = data.getArgumentsDicts()
+                            self.appendMessage(message: "\(messageData.user): \(messageData.message)")
+                        } catch (let error) {
+                            print(error.localizedDescription)
+                        }
                     })
                     self.chatHubConnection!.start()
-                    DispatchQueue.global().asyncAfter(deadline: .now() + 3) {
-                        connection.stop()
-                    }
-                }
-            }
+//                    DispatchQueue.global().asyncAfter(deadline: .now() + 3) {
+//                        connection.stop()
+//                    }
+//                }
+//            }
         }
         alert.addAction(OKAction)
         self.present(alert, animated: true)

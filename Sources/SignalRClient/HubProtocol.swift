@@ -77,10 +77,30 @@ public class ServerInvocationMessage: HubMessage, Encodable {
     }
 }
 
-public class ClientInvocationMessage: HubMessage, Decodable {
+public final class ClientInvocationMessage: HubMessage, Decodable {
+    
+    public enum CodingKeys : String, CodingKey {
+        case type
+        case target
+        case invocationId
+        case arguments
+    }
+    
     public let type = MessageType.Invocation
     public let target: String
     private var arguments: UnkeyedDecodingContainer?
+    private (set) var messageDict: [String: Any] = [:]
+    
+
+    var hasMoreArgs : Bool {
+        get {
+            if arguments != nil {
+                return !arguments!.isAtEnd
+            }
+
+            return false
+        }
+    }
 
     public required init (from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -97,22 +117,9 @@ public class ClientInvocationMessage: HubMessage, Decodable {
 
         return try arguments!.decode(T.self)
     }
-
-    var hasMoreArgs : Bool {
-        get {
-            if arguments != nil {
-                return !arguments!.isAtEnd
-            }
-
-            return false
-        }
-    }
-
-    enum CodingKeys : String, CodingKey {
-        case type
-        case target
-        case invocationId
-        case arguments
+    
+    func set(messageDict: [String: Any]) {
+        self.messageDict = messageDict
     }
 }
 

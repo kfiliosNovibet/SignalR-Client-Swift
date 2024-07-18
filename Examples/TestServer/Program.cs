@@ -14,7 +14,7 @@ namespace TestServer
                         .SetMinimumLevel(LogLevel.Debug);
                 })
                 .UseStartup<Startup>()
-                .UseUrls("http://0.0.0.0:5000/;https://0.0.0.0:5001/")
+                .UseUrls("http://192.168.1.128:5000/")
                 .Build()
                 .Run();
     }
