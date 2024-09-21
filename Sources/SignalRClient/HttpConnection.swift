@@ -9,7 +9,7 @@
 import Foundation
 
 public class HttpConnection: Connection {
-    private let connectionQueue: DispatchQueue
+    private let connectionQueue: DispatchQueue?
     private let startDispatchGroup: DispatchGroup
 
     private var url: URL
@@ -78,15 +78,16 @@ public class HttpConnection: Connection {
         startDispatchGroup.enter()
 
         if options.skipNegotiation {
-            transport = try! self.transportFactory.createTransport(availableTransports: [TransportDescription(transportType: TransportType.webSockets, transferFormats: [TransferFormat.text, TransferFormat.binary])])
+            transport = try! transportFactory.createTransport(availableTransports: [TransportDescription(transportType: TransportType.webSockets, transferFormats: [TransferFormat.text, TransferFormat.binary])])
             startTransport(connectionId: nil, connectionToken: nil)
         } else {
-            negotiate(negotiateUrl: createNegotiateUrl(), accessToken: nil) { negotiationResponse in
+            negotiate(negotiateUrl: createNegotiateUrl(), accessToken: nil) { [weak self] negotiationResponse in
+                guard let self else { return }
                 do {
-                    self.transport = try self.transportFactory.createTransport(availableTransports: negotiationResponse.availableTransports)
+                    self.transport = try transportFactory.createTransport(availableTransports: negotiationResponse.availableTransports)
                 } catch {
-                    self.logger.log(logLevel: .error, message: "Creating transport failed: \(error)")
-                    self.failOpenWithError(error: error, changeState: true)
+                    logger.log(logLevel: .error, message: "Creating transport failed: \(error)")
+                    failOpenWithError(error: error, changeState: true)
                     return
                 }
 
@@ -241,6 +242,7 @@ public class HttpConnection: Connection {
         if let t = transport {
             self.stopError = stopError
             t.close()
+            transport = nil
         } else {
             logger.log(logLevel: .debug, message: "Connection being stopped before transport initialized")
             logger.log(logLevel: .debug, message: "Invoking connectionDidClose (\(#function): \(#line))")
@@ -305,7 +307,7 @@ public class HttpConnection: Connection {
         var previousState: State? = nil
 
         logger.log(logLevel: .debug, message: "Attempting to change state from: '\(from?.rawValue ?? "(nil)")' to: '\(to)'")
-        connectionQueue.sync {
+        connectionQueue?.sync {
             if from == nil || from == state {
                 previousState = state
                 state = to

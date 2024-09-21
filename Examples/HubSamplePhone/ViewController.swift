@@ -16,8 +16,8 @@ struct MessageData: Decodable {
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     // Update the Url accordingly
-    private let serverUrl = "http://192.168.1.128:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
-    private let dispatchQueue = DispatchQueue(label: "hubsamplephone.queue.dispatcheueuq")
+    private let serverUrl = "http://127.0.0.1:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
+    private let dispatchQueue = DispatchQueue(label: "hubsamplephone.queue.dispatcheueu")
 
     private var chatHubConnection: HubConnection?
     private var chatHubConnectionDelegate: HubConnectionDelegate?
@@ -40,10 +40,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         alert.addTextField() { textField in textField.placeholder = "Name"}
         let OKAction = UIAlertAction(title: "OK", style: .default) { action in
             //This ( iteration below )  is for memroy leak test
-//            (1...100).forEach { item in
-//                let randomTimeAwait = Double.random(in: 0.5..<0.7) * Double(Int.random(in: 1..<7))
-//                DispatchQueue.global().asyncAfter(deadline: .now() + randomTimeAwait) { [weak self] in
-//                    guard let self else { return }
+            (1...100).forEach { item in
+                let randomTimeAwait = Double.random(in: 0.5..<0.7) * Double(Int.random(in: 1..<7))
+                DispatchQueue.global().asyncAfter(deadline: .now() + randomTimeAwait) { [weak self] in
+                    guard let self else { return }
+                    chatHubConnection?.stop()
                     self.chatHubConnectionDelegate = ChatHubConnectionDelegate(controller: self)
                     let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
                         .withLogging(minLogLevel: .debug)
@@ -65,8 +66,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 //                    DispatchQueue.global().asyncAfter(deadline: .now() + 3) {
 //                        connection.stop()
 //                    }
-//                }
-//            }
+                }
+            }
         }
         alert.addAction(OKAction)
         self.present(alert, animated: true)
