@@ -16,14 +16,14 @@ struct MessageData: Decodable {
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     // Update the Url accordingly
-    private let serverUrl = "http://127.0.0.1:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
+    private let serverUrl = "http://192.168.2.20:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
     private let dispatchQueue = DispatchQueue(label: "hubsamplephone.queue.dispatcheueu")
 
     private var chatHubConnection: HubConnection?
-    private var chatHubConnectionDelegate: HubConnectionDelegate?
     private var name = ""
     private var messages: [String] = []
     private var reconnectAlert: UIAlertController?
+    private var startTask: Task<Void,Error>?
 
     @IBOutlet weak var sendButton: UIButton!
     @IBOutlet weak var chatTableView: UITableView!
@@ -36,23 +36,20 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     
     override func viewDidAppear(_ animated: Bool) {
+
         let alert = UIAlertController(title: "Enter your Name", message:"", preferredStyle: UIAlertController.Style.alert)
         alert.addTextField() { textField in textField.placeholder = "Name"}
         let OKAction = UIAlertAction(title: "OK", style: .default) { action in
-            //This ( iteration below )  is for memroy leak test
-            (1...100).forEach { item in
-                let randomTimeAwait = Double.random(in: 0.5..<0.7) * Double(Int.random(in: 1..<7))
-                DispatchQueue.global().asyncAfter(deadline: .now() + randomTimeAwait) { [weak self] in
+            (1...100).forEach { index in
+                let randomTimeAwait = Double.random(in: 0.1..<0.7) * Double(Int.random(in: 1..<7))
+                DispatchQueue.global().async { [weak self] in
                     guard let self else { return }
-                    chatHubConnection?.stop()
-                    self.chatHubConnectionDelegate = ChatHubConnectionDelegate(controller: self)
                     let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
                         .withLogging(minLogLevel: .debug)
                         .withAutoReconnect()
-                        .withHubConnectionDelegate(delegate: self.chatHubConnectionDelegate!)
-                        .build()
-                    self.chatHubConnection = connection
-                    self.chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
+                    chatHubConnection = connection.build()
+                    chatHubConnection!.delegate = self
+                    chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
                         do {
                             let messageData = try data.getArgument(type: MessageData.self)
                             guard let self else { return }
@@ -62,12 +59,38 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                             print(error.localizedDescription)
                         }
                     })
-                    self.chatHubConnection!.start()
-//                    DispatchQueue.global().asyncAfter(deadline: .now() + 3) {
-//                        connection.stop()
-//                    }
+                    chatHubConnection?.start()
                 }
             }
+            //This ( iteration below )  is for memroy leak test
+//            (1...100).forEach { item in
+//                let randomTimeAwait = Double.random(in: 0.5..<0.7) * Double(Int.random(in: 1..<7))
+//                DispatchQueue.global().asyncAfter(deadline: .now() + randomTimeAwait) { [weak self] in
+//                    guard let self else { return }
+//                    chatHubConnection?.stop()
+//                    self.chatHubConnectionDelegate = ChatHubConnectionDelegate(controller: self)
+//                    let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
+//                        .withLogging(minLogLevel: .debug)
+//                        .withAutoReconnect()
+//                        .withHubConnectionDelegate(delegate: self.chatHubConnectionDelegate!)
+//                        .build()
+//                    self.chatHubConnection = connection
+//                    self.chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
+//                        do {
+//                            let messageData = try data.getArgument(type: MessageData.self)
+//                            guard let self else { return }
+//                            let test = data.getArgumentsDicts()
+//                            self.appendMessage(message: "\(messageData.user): \(messageData.message)")
+//                        } catch (let error) {
+//                            print(error.localizedDescription)
+//                        }
+//                    })
+//                    self.chatHubConnection!.start()
+////                    DispatchQueue.global().asyncAfter(deadline: .now() + 3) {
+////                        connection.stop()
+////                    }
+//                }
+//            }
         }
         alert.addAction(OKAction)
         self.present(alert, animated: true)
@@ -93,6 +116,24 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
     }
 
+    private func initConnectionInstance() {
+        let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
+                                .withLogging(minLogLevel: .debug)
+                                .withAutoReconnect()
+                            chatHubConnection = connection.build()
+                            chatHubConnection!.delegate = self
+                            chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
+                                do {
+                                    let messageData = try data.getArgument(type: MessageData.self)
+                                    guard let self else { return }
+                                    let test = data.getArgumentsDicts()
+                                    self.appendMessage(message: "\(messageData.user): \(messageData.message)")
+                                } catch (let error) {
+                                    print(error.localizedDescription)
+                                }
+                            })
+    }
+
     private func appendMessage(message: String) {
         self.dispatchQueue.sync {
             self.messages.append(message)
@@ -102,36 +143,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         self.chatTableView.insertRows(at: [IndexPath(row: messages.count - 1, section: 0)], with: .automatic)
         self.chatTableView.endUpdates()
         self.chatTableView.scrollToRow(at: IndexPath(item: messages.count-1, section: 0), at: .bottom, animated: true)
-    }
-
-    fileprivate func connectionDidOpen() {
-        toggleUI(isEnabled: true)
-    }
-
-    fileprivate func connectionDidFailToOpen(error: Error) {
-        blockUI(message: "Connection failed to start.", error: error)
-    }
-
-    fileprivate func connectionDidClose(error: Error?) {
-        if let alert = reconnectAlert {
-            alert.dismiss(animated: true, completion: nil)
-        }
-        blockUI(message: "Connection is closed.", error: error)
-    }
-
-    fileprivate func connectionWillReconnect(error: Error?) {
-        guard reconnectAlert == nil else {
-            print("Alert already present. This is unexpected.")
-            return
-        }
-
-        reconnectAlert = UIAlertController(title: "Reconnecting...", message: "Please wait", preferredStyle: .alert)
-        self.present(reconnectAlert!, animated: true, completion: nil)
-    }
-
-    fileprivate func connectionDidReconnect() {
-        reconnectAlert?.dismiss(animated: true, completion: nil)
-        reconnectAlert = nil
     }
 
     func blockUI(message: String, error: Error?) {
@@ -164,31 +175,55 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
 }
 
-class ChatHubConnectionDelegate: HubConnectionDelegate {
-
-    weak var controller: ViewController?
-
-    init(controller: ViewController) {
-        self.controller = controller
-    }
+extension ViewController: HubConnectionDelegate {
 
     func connectionDidOpen(hubConnection: HubConnection) {
-        controller?.connectionDidOpen()
+        toggleUI(isEnabled: true)
     }
 
     func connectionDidFailToOpen(error: Error) {
-        controller?.connectionDidFailToOpen(error: error)
+        blockUI(message: "Connection failed to start.", error: error)
     }
 
-    func connectionDidClose(error: Error?) {
-        controller?.connectionDidClose(error: error)
+    func connectionDidClose(error: (any Error)?) {
+        if let alert = reconnectAlert {
+            alert.dismiss(animated: true, completion: nil)
+        }
+        blockUI(message: "Connection is closed.", error: error)
     }
 
     func connectionWillReconnect(error: Error) {
-        controller?.connectionWillReconnect(error: error)
+        guard reconnectAlert == nil else {
+            print("Alert already present. This is unexpected.")
+            return
+        }
+
+        reconnectAlert = UIAlertController(title: "Reconnecting...", message: "Please wait", preferredStyle: .alert)
+        self.present(reconnectAlert!, animated: true, completion: nil)
     }
 
     func connectionDidReconnect() {
-        controller?.connectionDidReconnect()
+        reconnectAlert?.dismiss(animated: true, completion: nil)
+        reconnectAlert = nil
     }
+
+//    func connectionDidOpen(hubConnection: HubConnection) {
+//        connectionDidOpen()
+//    }
+//
+//    func connectionDidFailToOpen(error: Error) {
+//        connectionDidFailToOpen(error: error)
+//    }
+//
+//    func connectionDidClose(error: Error?) {
+//        connectionDidClose(error: error)
+//    }
+//
+//    func connectionWillReconnect(error: Error) {
+//        connectionWillReconnect(error: error)
+//    }
+//
+//    func connectionDidReconnect() {
+//        connectionDidReconnect()
+//    }
 }
