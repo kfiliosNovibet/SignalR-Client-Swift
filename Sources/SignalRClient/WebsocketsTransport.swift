@@ -38,7 +38,7 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
             var request = URLRequest(url: convertUrl(url: url))
             populateHeaders(headers: options.headers, request: &request)
             setAccessToken(accessTokenProvider: options.accessTokenProvider, request: &request)
-            let configuration = URLSessionConfiguration.background(withIdentifier: UUID().uuidString)
+            let configuration = URLSessionConfiguration.ephemeral
             configuration.urlCache = .none
             configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
             urlSession = URLSession(configuration: configuration, delegate: self, delegateQueue: OperationQueue())
