@@ -12,6 +12,7 @@ import Foundation
 public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelegate {
     private let logger: Logger
     private let dispatchQueue = DispatchQueue(label: "SignalR.webSocketTransport.queue")
+    private let dispatchQueueInit = DispatchQueue(label: "SignalR.webSocketTransport.queue.init")
     private let dispatchQueueSend = DispatchQueue(label: "SignalR.webSocketTransport.queue.send")
     private let dispatchQueueReceive = DispatchQueue(label: "SignalR.webSocketTransport.queue.receive")
     private let dispatchQueueReceiveMessage = DispatchQueue(label: "SignalR.webSocketTransport.queue.receive.message")
@@ -32,17 +33,22 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
         logger.log(logLevel: .info, message: "Starting WebSocket transport")
 
         authenticationChallengeHandler = options.authenticationChallengeHandler
+        dispatchQueueInit.async { [weak self] in
+            guard let self else { return }
+            var request = URLRequest(url: convertUrl(url: url))
+            populateHeaders(headers: options.headers, request: &request)
+            setAccessToken(accessTokenProvider: options.accessTokenProvider, request: &request)
+            let configuration = URLSessionConfiguration.background(withIdentifier: UUID().uuidString)
+            configuration.urlCache = .none
+            configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+            urlSession = URLSession(configuration: configuration, delegate: self, delegateQueue: OperationQueue())
+            webSocketTask = urlSession!.webSocketTask(with: request)
+            if let maximumWebsocketMessageSize = options.maximumWebsocketMessageSize {
+                webSocketTask?.maximumMessageSize = maximumWebsocketMessageSize
+            }
 
-        var request = URLRequest(url: convertUrl(url: url))
-        populateHeaders(headers: options.headers, request: &request)
-        setAccessToken(accessTokenProvider: options.accessTokenProvider, request: &request)
-        urlSession = URLSession(configuration: .ephemeral, delegate: self, delegateQueue: OperationQueue())
-        webSocketTask = urlSession!.webSocketTask(with: request)
-        if let maximumWebsocketMessageSize = options.maximumWebsocketMessageSize {
-            webSocketTask?.maximumMessageSize = maximumWebsocketMessageSize
+            webSocketTask!.resume()
         }
-
-        webSocketTask!.resume()
     }
 
     public func send(data: Data, sendDidComplete: @escaping (Error?) -> Void) {
