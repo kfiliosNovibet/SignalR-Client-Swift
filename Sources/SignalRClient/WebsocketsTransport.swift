@@ -44,6 +44,12 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
 
     public func send(data: Data, sendDidComplete: @escaping (Error?) -> Void) {
         let message = URLSessionWebSocketTask.Message.data(data)
+        guard webSocketTask?.state == .running else {
+            sendDidComplete(SignalRError.connectionIsBeingClosed)
+            isTransportClosed = true
+            delegate?.transportDidClose(SignalRError.connectionIsBeingClosed)
+            return
+        }
         webSocketTask?.send(message, completionHandler: sendDidComplete)
     }
 
