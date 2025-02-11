@@ -36,7 +36,7 @@ namespace TestServer
             // if (!hasAlreadyStartRT)
             // {
             hasAlreadyStartRT = true;
-            Clients.All.SendAsync("NewMessage", new MessageData("Server msg", RandomString(8)));
+            Clients.All.SendAsync("NewMessage", new MessageData("Server msg", "{\"type\":7,\"error\":\"Connection closed with an error.\",\"allowReconnect\":true}"));
             // repeateMessage(() => {  }, 5, cts.Token);
             // }
 

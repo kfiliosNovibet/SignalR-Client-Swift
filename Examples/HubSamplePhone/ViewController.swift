@@ -16,7 +16,7 @@ struct MessageData: Decodable {
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     // Update the Url accordingly
-    private let serverUrl = "http://192.168.2.20:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
+    private let serverUrl = "http://192.168.2.24:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
     private let dispatchQueue = DispatchQueue(label: "hubsamplephone.queue.dispatcheueu")
 
     private var chatHubConnection: HubConnection?
@@ -106,6 +106,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     @IBAction func btnSend(_ sender: Any) {
         let message = msgTextField.text
+        if message == "asdf" {
+            chatHubConnection?.invoke(method: "Broadcasts", message) { error in
+                if let e = error {
+                    self.appendMessage(message: "Error: \(e)")
+                }
+            }
+            msgTextField.text = ""
+        }
         if message != "" {
             chatHubConnection?.invoke(method: "Broadcast", name, message) { error in
                 if let e = error {

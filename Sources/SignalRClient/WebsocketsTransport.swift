@@ -44,6 +44,7 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
 
     public func send(data: Data, sendDidComplete: @escaping (Error?) -> Void) {
         let message = URLSessionWebSocketTask.Message.data(data)
+        logger.log(logLevel: .info, message: "WSS sending data: \(message) sting: \(String(data: data, encoding: .utf8) ?? "<binary data>")")
         guard webSocketTask?.state == .running else {
             sendDidComplete(SignalRError.connectionIsBeingClosed)
             isTransportClosed = true
@@ -71,6 +72,7 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
             case .failure(let error):
                 // This failure always occurs when the task is cancelled. If the code
                 // is not normalClosure this is a real error.
+                logger.log(logLevel: .error, message: "WSS sending failure: \(error)")
                 if self.webSocketTask?.closeCode != .normalClosure {
                     self.handleError(error: error)
                 }

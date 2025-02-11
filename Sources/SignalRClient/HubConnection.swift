@@ -390,6 +390,7 @@ public class HubConnection {
         }
 
         do {
+            var testData = "{\"type\":7,\"error\":\"Connection closed with an error.\",\"allowReconnect\":true}".data(using: .utf8)
             let messages = try hubProtocol.parseMessages(input: data)
             for incomingMessage in messages {
                 switch(incomingMessage.type) {
