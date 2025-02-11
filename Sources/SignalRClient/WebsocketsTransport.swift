@@ -12,6 +12,9 @@ import Foundation
 public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelegate {
     private let logger: Logger
     private let dispatchQueue = DispatchQueue(label: "SignalR.webSocketTransport.queue")
+    private let dispatchQueueSend = DispatchQueue(label: "SignalR.webSocketTransport.queue.send")
+    private let dispatchQueueReceive = DispatchQueue(label: "SignalR.webSocketTransport.queue.receive")
+    private let dispatchQueueReceiveMessage = DispatchQueue(label: "SignalR.webSocketTransport.queue.receive.message")
     private var urlSession: URLSession?
     private var webSocketTask: URLSessionWebSocketTask?
     private var authenticationChallengeHandler: ((_ session: URLSession, _ challenge: URLAuthenticationChallenge, _ completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) -> Void)?
@@ -44,14 +47,17 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
 
     public func send(data: Data, sendDidComplete: @escaping (Error?) -> Void) {
         let message = URLSessionWebSocketTask.Message.data(data)
-        logger.log(logLevel: .info, message: "WSS sending data: \(message) sting: \(String(data: data, encoding: .utf8) ?? "<binary data>")")
+        logger.log(logLevel: .info, message: "WSS received data: \(message) sting: \(String(data: data, encoding: .utf8) ?? "<binary data>")")
         guard webSocketTask?.state == .running else {
             sendDidComplete(SignalRError.connectionIsBeingClosed)
             isTransportClosed = true
             delegate?.transportDidClose(SignalRError.connectionIsBeingClosed)
             return
         }
-        webSocketTask?.send(message, completionHandler: sendDidComplete)
+        dispatchQueueSend.async { [weak self] in
+            guard let self else { return }
+            webSocketTask?.send(message, completionHandler: sendDidComplete)
+        }
     }
 
     public func close() {
@@ -66,19 +72,25 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
     }
 
     private func readMessage()  {
-        webSocketTask?.receive { [weak self] result in
+        dispatchQueueReceive.async { [weak self] in
             guard let self else { return }
-            switch result {
-            case .failure(let error):
-                // This failure always occurs when the task is cancelled. If the code
-                // is not normalClosure this is a real error.
-                logger.log(logLevel: .error, message: "WSS sending failure: \(error)")
-                if self.webSocketTask?.closeCode != .normalClosure {
-                    self.handleError(error: error)
+            webSocketTask?.receive { [weak self] result in
+                guard let self else { return }
+                switch result {
+                case .failure(let error):
+                    // This failure always occurs when the task is cancelled. If the code
+                    // is not normalClosure this is a real error.
+                    logger.log(logLevel: .error, message: "WSS sending failure: \(error)")
+                    if self.webSocketTask?.closeCode != .normalClosure {
+                        self.handleError(error: error)
+                    }
+                case .success(let message):
+                    dispatchQueueReceiveMessage.async { [weak self] in
+                        guard let self else { return }
+                        self.handleMessage(message: message)
+                    }
+                    self.readMessage()
                 }
-            case .success(let message):
-                self.handleMessage(message: message)
-                self.readMessage()
             }
         }
     }
