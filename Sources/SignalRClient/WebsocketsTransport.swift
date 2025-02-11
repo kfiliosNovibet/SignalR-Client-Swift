@@ -47,7 +47,7 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
 
     public func send(data: Data, sendDidComplete: @escaping (Error?) -> Void) {
         let message = URLSessionWebSocketTask.Message.data(data)
-        logger.log(logLevel: .info, message: "WSS received data: \(message) sting: \(String(data: data, encoding: .utf8) ?? "<binary data>")")
+        logger.log(logLevel: .info, message: "WSS sending data: \(message) sting: \(String(data: data, encoding: .utf8) ?? "<binary data>")")
         guard webSocketTask?.state == .running else {
             sendDidComplete(SignalRError.connectionIsBeingClosed)
             isTransportClosed = true
@@ -85,6 +85,7 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
                         self.handleError(error: error)
                     }
                 case .success(let message):
+                    logger.log(logLevel: .info, message: "WSS received data: \(message)")
                     dispatchQueueReceiveMessage.async { [weak self] in
                         guard let self else { return }
                         self.handleMessage(message: message)
