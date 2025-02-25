@@ -100,14 +100,17 @@ internal class ReconnectableConnection: Connection {
             logger.log(logLevel: .info, message: "Aborting start/reconnect due to connection state: \(currentState)")
             return
         }
-        //This causes a memory leak due to race condition do we need it ? 
-//        underlyingConnection = connectionFactory()
-        guard underlyingConnection != nil else {
-            logger.log(logLevel: .error, message: "Reconnectable connection is not yet started")
-            return
+        //This causes a memory leak due to race condition do we need it ?
+        connectionQueue.async { [weak self] in
+            guard let self = self else { return }
+            underlyingConnection = connectionFactory()
+            guard underlyingConnection != nil else {
+                logger.log(logLevel: .error, message: "Reconnectable connection is not yet started")
+                return
+            }
+            underlyingConnection!.delegate = wrappedDelegate
+            underlyingConnection!.start()
         }
-        underlyingConnection!.delegate = wrappedDelegate
-        underlyingConnection!.start()
     }
 
     private func changeState(from: [State]?, to: State) -> State? {

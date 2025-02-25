@@ -19,7 +19,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     private let serverUrl = "http://192.168.2.7:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
     private let dispatchQueue = DispatchQueue(label: "hubsamplephone.queue.dispatcheueu")
 
-    @ReadWriteLock private var chatHubConnection: HubConnection?
+    private var chatHubConnection: HubConnection?
     private var name = ""
     private var messages: [String] = []
     private var reconnectAlert: UIAlertController?
@@ -41,54 +41,54 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let alert = UIAlertController(title: "Enter your Name", message:"", preferredStyle: UIAlertController.Style.alert)
         alert.addTextField() { textField in textField.placeholder = "Name"}
         let OKAction = UIAlertAction(title: "OK", style: .default) { action in
-//            (1...100).forEach { index in
-//                let randomTimeAwait = Double.random(in: 0.1..<0.7) * Double(Int.random(in: 1..<7))
-//                DispatchQueue.global().async { [weak self] in
-//                    guard let self else { return }
-//                    let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
-//                        .withLogging(minLogLevel: .debug)
-//                        .withAutoReconnect()
-//                    chatHubConnection = connection.build()
-//                    chatHubConnection!.delegate = self
-//                    chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
-//                        do {
-//                            let messageData = try data.getArgument(type: MessageData.self)
-//                            guard let self else { return }
-//                            let test = data.getArgumentsDicts()
-//                            self.appendMessage(message: "\(messageData.user): \(messageData.message)")
-//                        } catch (let error) {
-//                            print(error.localizedDescription)
-//                        }
-//                    })
-//                    chatHubConnection?.start()
-//                }
-//            }
-
-//            let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
-//                .withLogging(minLogLevel: .debug)
-//                .withAutoReconnect()
-//            chatHubConnection = connection.build()
-//            chatHubConnection!.delegate = self
-//            chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
-//                do {
-//                    let messageData = try data.getArgument(type: MessageData.self)
-//                    guard let self else { return }
-//                    let test = data.getArgumentsDicts()
-//                    self.appendMessage(message: "\(messageData.user): \(messageData.message)")
-//                } catch (let error) {
-//                    print(error.localizedDescription)
-//                }
-//            })
-//            chatHubConnection?.start()
-
-            (1...1000).forEach {_ in
-                Task.detached {
-                    self.startConnection()
-                }
-                Task.detached {
-                    self.restart()
+            (1...100).forEach { index in
+                let randomTimeAwait = Double.random(in: 0.1..<0.7) * Double(Int.random(in: 1..<7))
+                DispatchQueue.global().async { [weak self] in
+                    guard let self else { return }
+                    let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
+                        .withLogging(minLogLevel: .debug)
+                        .withAutoReconnect()
+                    chatHubConnection = connection.build()
+                    chatHubConnection!.delegate = self
+                    chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
+                        do {
+                            let messageData = try data.getArgument(type: MessageData.self)
+                            guard let self else { return }
+                            let test = data.getArgumentsDicts()
+                            self.appendMessage(message: "\(messageData.user): \(messageData.message)")
+                        } catch (let error) {
+                            print(error.localizedDescription)
+                        }
+                    })
+                    chatHubConnection?.start()
                 }
             }
+
+            let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
+                .withLogging(minLogLevel: .debug)
+                .withAutoReconnect()
+            self.chatHubConnection = connection.build()
+            self.chatHubConnection!.delegate = self
+            self.chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
+                do {
+                    let messageData = try data.getArgument(type: MessageData.self)
+                    guard let self else { return }
+                    let test = data.getArgumentsDicts()
+                    self.appendMessage(message: "\(messageData.user): \(messageData.message)")
+                } catch (let error) {
+                    print(error.localizedDescription)
+                }
+            })
+            self.chatHubConnection?.start()
+
+//            (1...1000).forEach {_ in
+//                Task.detached {
+//                    self.startConnection()
+//                }
+//                Task.detached {
+//                    self.restart()
+//                }
+//            }
 
 
             //This ( iteration below )  is for memroy leak test
