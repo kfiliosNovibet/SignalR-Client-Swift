@@ -11,11 +11,11 @@ internal class ReconnectableConnection: Connection {
     private let connectionQueue = DispatchQueue(label: "SignalR.reconnection.queue")
     private let callbackQueue: DispatchQueue
 
-    private let connectionFactory: () -> Connection
+    private let connectionFactory: () -> Connection?
     private let reconnectPolicy: ReconnectPolicy
     private let logger: Logger
 
-    private var underlyingConnection: Connection
+    private var underlyingConnection: Connection?
     private var wrappedDelegate: ConnectionDelegate?
     private var state = State.disconnected
     private var failedAttemptsCount: Int = 0
@@ -31,14 +31,14 @@ internal class ReconnectableConnection: Connection {
 
     weak var delegate: ConnectionDelegate?
     var connectionId: String? {
-        return underlyingConnection.connectionId
+        return underlyingConnection?.connectionId
     }
 
     var inherentKeepAlive: Bool {
-        return underlyingConnection.inherentKeepAlive
+        return underlyingConnection?.inherentKeepAlive ?? false
     }
 
-    init(connectionFactory: @escaping () -> Connection, reconnectPolicy: ReconnectPolicy, callbackQueue: DispatchQueue, logger: Logger) {
+    init(connectionFactory: @escaping () -> Connection?, reconnectPolicy: ReconnectPolicy, callbackQueue: DispatchQueue, logger: Logger) {
         self.connectionFactory = connectionFactory
         self.reconnectPolicy = reconnectPolicy
         self.logger = logger
@@ -66,15 +66,23 @@ internal class ReconnectableConnection: Connection {
             }
             return
         }
+        guard let underlyingConnection = underlyingConnection else {
+            logger.log(logLevel: .error, message: "Reconnectable connection is not yet started")
+            return
+        }
         underlyingConnection.send(data: data, sendDidComplete: sendDidComplete)
     }
 
     func stop(stopError: Error?) {
         logger.log(logLevel: .info, message: "Received connection stop request")
         if changeState(from: [.starting, .reconnecting, .running], to: .stopping) != nil {
-          underlyingConnection.stop(stopError: stopError)
+            guard let underlyingConnection = underlyingConnection else {
+                logger.log(logLevel: .error, message: "Reconnectable connection is not yet started")
+                return
+            }
+            underlyingConnection.stop(stopError: stopError)
         } else {
-          logger.log(logLevel: .warning, message: "Reconnectable connection is already in the disconnected state. Ignoring stop request")
+            logger.log(logLevel: .warning, message: "Reconnectable connection is already in the disconnected state. Ignoring stop request")
         }
     }
 
@@ -82,7 +90,8 @@ internal class ReconnectableConnection: Connection {
         logger.log(logLevel: .debug, message: "Starting or reconnecting")
         var shouldStart = false
         var currentState = State.disconnected
-        connectionQueue.sync {
+        connectionQueue.sync { [weak self] in
+            guard let self = self else { return }
             shouldStart = state == .starting || state == .reconnecting
             currentState = state
         }
@@ -91,10 +100,14 @@ internal class ReconnectableConnection: Connection {
             logger.log(logLevel: .info, message: "Aborting start/reconnect due to connection state: \(currentState)")
             return
         }
-
-        underlyingConnection = connectionFactory()
-        underlyingConnection.delegate = wrappedDelegate
-        underlyingConnection.start()
+        //This causes a memory leak due to race condition do we need it ? 
+//        underlyingConnection = connectionFactory()
+        guard underlyingConnection != nil else {
+            logger.log(logLevel: .error, message: "Reconnectable connection is not yet started")
+            return
+        }
+        underlyingConnection!.delegate = wrappedDelegate
+        underlyingConnection!.start()
     }
 
     private func changeState(from: [State]?, to: State) -> State? {

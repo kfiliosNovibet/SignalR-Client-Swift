@@ -84,6 +84,7 @@
 		7391A95522510170007BEF23 /* HubConnectionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92022510170007BEF23 /* HubConnectionBuilder.swift */; };
 		7391A95622510170007BEF23 /* SignalRError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92122510170007BEF23 /* SignalRError.swift */; };
 		7391A95722510170007BEF23 /* SignalRError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92122510170007BEF23 /* SignalRError.swift */; };
+		F7B69E122D6DF00D00B9DF30 /* ReadWriteLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B69E112D6DF00D00B9DF30 /* ReadWriteLock.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -210,6 +211,7 @@
 		7391A91F22510170007BEF23 /* ConnectionDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionDelegate.swift; sourceTree = "<group>"; };
 		7391A92022510170007BEF23 /* HubConnectionBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HubConnectionBuilder.swift; sourceTree = "<group>"; };
 		7391A92122510170007BEF23 /* SignalRError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalRError.swift; sourceTree = "<group>"; };
+		F7B69E112D6DF00D00B9DF30 /* ReadWriteLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadWriteLock.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -330,6 +332,7 @@
 		5AEC70EE20310E3E00616DD2 /* HubSamplePhone */ = {
 			isa = PBXGroup;
 			children = (
+				F7B69E112D6DF00D00B9DF30 /* ReadWriteLock.swift */,
 				5AEC70EF20310E3E00616DD2 /* AppDelegate.swift */,
 				5AEC70F120310E3E00616DD2 /* ViewController.swift */,
 				5AEC70F320310E3E00616DD2 /* Main.storyboard */,
@@ -700,6 +703,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F7B69E122D6DF00D00B9DF30 /* ReadWriteLock.swift in Sources */,
 				5AEC70F220310E3E00616DD2 /* ViewController.swift in Sources */,
 				5AEC70F020310E3E00616DD2 /* AppDelegate.swift in Sources */,
 			);

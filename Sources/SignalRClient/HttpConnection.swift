@@ -194,7 +194,8 @@ public class HttpConnection: Connection {
         }
 
         logger.log(logLevel: .debug, message: "Invoking connectionDidFailToOpen")
-        options.callbackQueue.async {
+        options.callbackQueue.async { [weak self] in
+            guard let self else { return }
             self.delegate?.connectionDidFailToOpen(error: error)
         }
     }
@@ -224,7 +225,7 @@ public class HttpConnection: Connection {
     public func stop(stopError: Error? = nil) {
         logger.log(logLevel: .info, message: "Stopping connection")
 
-        let previousState = self.changeState(from: nil, to: .stopped)
+        let previousState = changeState(from: nil, to: .stopped)
         if previousState == .stopped {
             logger.log(logLevel: .info, message: "Connection already stopped")
             return
@@ -249,7 +250,8 @@ public class HttpConnection: Connection {
             } else {
                 logger.log(logLevel: .debug, message: "Connection being stopped before transport initialized")
                 logger.log(logLevel: .debug, message: "Invoking connectionDidClose (\(#function): \(#line))")
-                options.callbackQueue.async {
+                options.callbackQueue.async { [weak self] in
+                    guard let self = self else { return }
                     self.delegate?.connectionDidClose(error: stopError)
                 }
             }
@@ -266,7 +268,8 @@ public class HttpConnection: Connection {
         if  previousState != nil {
             logger.log(logLevel: .debug, message: "Invoking connectionDidOpen")
             self.connectionId = connectionId
-            options.callbackQueue.async {
+            options.callbackQueue.async { [weak self] in
+                guard let self = self else { return }
                 self.delegate?.connectionDidOpen(connection: self)
             }
         } else {
@@ -276,7 +279,8 @@ public class HttpConnection: Connection {
 
     fileprivate func transportDidReceiveData(_ data: Data) {
         logger.log(logLevel: .debug, message: "Received data from transport")
-        options.callbackQueue.async {
+        options.callbackQueue.async { [weak self] in
+            guard let self = self else { return }
             self.delegate?.connectionDidReceiveData(connection: self, data: data)
         }
     }
@@ -293,7 +297,8 @@ public class HttpConnection: Connection {
             startDispatchGroup.leave()
 
             logger.log(logLevel: .debug, message: "Invoking connectionDidFailToOpen")
-            options.callbackQueue.async {
+            options.callbackQueue.async { [weak self] in
+                guard let self = self else { return }
                 self.delegate?.connectionDidFailToOpen(error: self.stopError ?? error!)
             }
         } else {
@@ -301,7 +306,8 @@ public class HttpConnection: Connection {
 
             self.connectionId = nil
 
-            options.callbackQueue.async {
+            options.callbackQueue.async { [weak self] in
+                guard let self = self else { return }
                 self.delegate?.connectionDidClose(error: self.stopError ?? error)
             }
         }
@@ -311,7 +317,8 @@ public class HttpConnection: Connection {
         var previousState: State? = nil
 
         logger.log(logLevel: .debug, message: "Attempting to change state from: '\(from?.rawValue ?? "(nil)")' to: '\(to)'")
-        connectionQueue?.sync {
+        connectionQueue?.sync { [weak self] in
+            guard let self = self else { return }
             if from == nil || from == state {
                 previousState = state
                 state = to

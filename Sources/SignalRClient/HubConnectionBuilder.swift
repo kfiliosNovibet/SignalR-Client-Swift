@@ -159,7 +159,7 @@ public class HubConnectionBuilder {
         let url = self.url
         let httpConnectionOptions = self.httpConnectionOptions
         let logger = self.logger
-        let connectionFactory: () -> HttpConnection = {
+        let connectionFactory: () -> HttpConnection? = {
             // HttpConnection may overwrite some properties (most notably accessTokenProvider
             // when connecting to Azure SingalR Service) so needs its own copy to not corrupt
             // the instance provided by the user

@@ -122,7 +122,8 @@ public class HubConnection {
         logger.log(logLevel: .info, message: "Registering client side hub method: '\(method)'")
 
         var callbackRegistered = false
-        hubConnectionQueue.sync {
+        hubConnectionQueue.sync { [weak self] in
+            guard let self else { return }
             callbackRegistered = callbacks.keys.contains(method)
             callbacks[method] = callback
         }
@@ -453,7 +454,8 @@ public class HubConnection {
         }
 
         if callback != nil {
-            callbackQueue.async {
+            callbackQueue.async {  [weak self] in
+                guard let self = self else { return }
                 do {
                     try callback!(ArgumentExtractor(clientInvocationMessage: message))
                 } catch {
@@ -484,20 +486,23 @@ public class HubConnection {
             serverInvocationHandler.raiseError(error: invocationError)
         }
         handshakeStatus = .needsHandling(false)
-        callbackQueue.async {
+        callbackQueue.async { [weak self] in
+            guard let self = self else { return }
             self.delegate?.connectionDidClose(error: error)
         }
     }
 
     fileprivate func connectionDidFailToOpen(error: Error) {
-        callbackQueue.async {
+        callbackQueue.async { [weak self] in
+            guard let self = self else { return }
             self.delegate?.connectionDidFailToOpen(error: error)
         }
     }
 
     fileprivate func connectionWillReconnect(error: Error) {
         handshakeStatus = .needsHandling(true)
-        callbackQueue.async {
+        callbackQueue.async { [weak self] in
+            guard let self = self else { return }
             self.delegate?.connectionWillReconnect(error: error)
         }
     }
