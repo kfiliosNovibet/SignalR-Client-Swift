@@ -46,9 +46,13 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
         let message = URLSessionWebSocketTask.Message.data(data)
         logger.log(logLevel: .info, message: "WSS sending data: \(message) sting: \(String(data: data, encoding: .utf8) ?? "<binary data>")")
         guard webSocketTask?.state == .running else {
-            sendDidComplete(SignalRError.connectionIsBeingClosed)
-            isTransportClosed = true
-            delegate?.transportDidClose(SignalRError.connectionIsBeingClosed)
+            dispatchQueue.async { [weak self] in
+                guard let self else { return }
+                sendDidComplete(SignalRError.connectionIsBeingClosed)
+                isTransportClosed = true
+                delegate?.transportDidClose(SignalRError.connectionIsBeingClosed)
+            }
+      
             return
         }
         webSocketTask?.send(message, completionHandler: sendDidComplete)

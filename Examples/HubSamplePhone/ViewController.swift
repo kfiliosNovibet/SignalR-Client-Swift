@@ -16,7 +16,7 @@ struct MessageData: Decodable {
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     // Update the Url accordingly
-    private let serverUrl = "http://192.168.2.7:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
+    private let serverUrl = "http://10.130.81.194:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
     private let dispatchQueue = DispatchQueue(label: "hubsamplephone.queue.dispatcheueu")
 
     private var chatHubConnection: HubConnection?
@@ -203,11 +203,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         self.dispatchQueue.sync {
             self.messages.append(message)
         }
-
-        self.chatTableView.beginUpdates()
-        self.chatTableView.insertRows(at: [IndexPath(row: messages.count - 1, section: 0)], with: .automatic)
-        self.chatTableView.endUpdates()
-        self.chatTableView.scrollToRow(at: IndexPath(item: messages.count-1, section: 0), at: .bottom, animated: true)
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            
+            self.chatTableView.beginUpdates()
+            self.chatTableView.insertRows(at: [IndexPath(row: messages.count - 1, section: 0)], with: .automatic)
+            self.chatTableView.endUpdates()
+            self.chatTableView.scrollToRow(at: IndexPath(item: messages.count-1, section: 0), at: .bottom, animated: true)
+        }
     }
 
     func blockUI(message: String, error: Error?) {
