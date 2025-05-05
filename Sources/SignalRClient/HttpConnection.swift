@@ -313,6 +313,14 @@ public class HttpConnection: Connection {
         }
     }
 
+    fileprivate func transportDidFail(_ session: URLSession?, task: URLSessionTask?, at: TransportDidFailPoint, didCompleteWithError error: (any Error)?) {
+        logger.log(logLevel: .info, message: "Transport Did Fail")
+        options.callbackQueue.async { [weak self] in
+            guard let self = self else { return }
+            self.delegate?.connectionDidFail(session, task: task, at: at, didCompleteWithError: error)
+        }
+    }
+
     private func changeState(from: State?, to: State) -> State? {
         var previousState: State? = nil
 
@@ -331,6 +339,11 @@ public class HttpConnection: Connection {
 }
 
 public class ConnectionTransportDelegate: TransportDelegate {
+
+    public func transportDidFail(_ session: URLSession?, task: URLSessionTask?, at: TransportDidFailPoint, didCompleteWithError error: (any Error)?) {
+        connection?.transportDidFail(session, task: task, at: at, didCompleteWithError: error)
+    }
+    
     private weak var connection: HttpConnection?
     private let connectionId: String?
 

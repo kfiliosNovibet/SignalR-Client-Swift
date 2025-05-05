@@ -12,4 +12,5 @@ public protocol TransportDelegate: AnyObject {
     func transportDidOpen() -> Void
     func transportDidReceiveData(_ data: Data) -> Void
     func transportDidClose(_ error: Error?) -> Void
+    func transportDidFail(_ session: URLSession?, task: URLSessionTask?, at: TransportDidFailPoint, didCompleteWithError error: Error?) -> Void
 }

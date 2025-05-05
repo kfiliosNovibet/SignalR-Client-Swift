@@ -507,6 +507,13 @@ public class HubConnection {
         }
     }
 
+    fileprivate func connectionDidFail(_ session: URLSession?, task: URLSessionTask?, at: TransportDidFailPoint, didCompleteWithError error: (any Error)?) {
+        callbackQueue.async { [weak self] in
+            guard let self = self else { return }
+            self.delegate?.connectionDidFail(session, task: task, at: at, didCompleteWithError: error)
+        }
+    }
+
     fileprivate func connectionDidReconnect() {
         initiateHandshake()
     }
@@ -573,6 +580,11 @@ public class HubConnection {
 }
 
 fileprivate class HubConnectionConnectionDelegate: ConnectionDelegate {
+    
+    func connectionDidFail(_ session: URLSession?, task: URLSessionTask?, at: TransportDidFailPoint, didCompleteWithError error: (any Error)?) {
+        self.hubConnection?.connectionDidFail(session, task: task, at: at, didCompleteWithError: error)
+    }
+    
     func connectionStateDidChange(state: HttpConnection.State) {
         
     }

@@ -49,6 +49,8 @@ public protocol HubConnectionDelegate: AnyObject {
      Invoked when the connection reconnected successfully.
     */
     func connectionDidReconnect()
+
+    func connectionDidFail(_ session: URLSession?, task: URLSessionTask?, at: TransportDidFailPoint, didCompleteWithError error: (any Error)?)
 }
 
 public extension HubConnectionDelegate {

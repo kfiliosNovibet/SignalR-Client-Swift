@@ -17,6 +17,7 @@ public protocol ConnectionDelegate: AnyObject {
     func connectionDidReconnect()
     func connectionStateDidChange(state: HttpConnection.State)
     func connectionTransportDidChange(transport: Transport)
+    func connectionDidFail(_ session: URLSession?, task: URLSessionTask?, at: TransportDidFailPoint, didCompleteWithError error: (any Error)?)
 }
 
 public extension ConnectionDelegate {

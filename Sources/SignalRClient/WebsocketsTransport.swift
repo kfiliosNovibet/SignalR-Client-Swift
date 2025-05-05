@@ -18,7 +18,7 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
 
     private var isTransportClosed = false
 
-    public weak var delegate: TransportDelegate?
+    public  weak var delegate: TransportDelegate?
     public let inherentKeepAlive = false
 
     init(logger: Logger) {
@@ -70,17 +70,19 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
     }
 
     private func readMessage()  {
-        webSocketTask?.receive { result in
+        webSocketTask?.receive { [weak self] result in
+            guard let self else { return }
             switch result {
             case .failure(let error):
                 // This failure always occurs when the task is cancelled. If the code
                 // is not normalClosure this is a real error.
                 if self.webSocketTask?.closeCode != .normalClosure {
-                    self.handleError(error: error)
+                    delegate?.transportDidFail(nil, task: nil, at: .wssReceiveData, didCompleteWithError: error)
+                    handleError(error: error)
                 }
             case .success(let message):
-                self.handleMessage(message: message)
-                self.readMessage()
+                handleMessage(message: message)
+                readMessage()
             }
         }
     }
@@ -110,6 +112,7 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         logger.log(logLevel: .debug, message: "urlSession didCompleteWithError invoked")
+        delegate?.transportDidFail(session, task: task, at: .wssURLSessionInit, didCompleteWithError: error)
         guard error != nil else {
             logger.log(logLevel: .debug, message: "error is nil - ignoring error")
             // As per docs: "Error may be nil, which implies that no error occurred and this task is complete."

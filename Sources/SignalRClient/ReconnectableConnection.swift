@@ -197,6 +197,14 @@ internal class ReconnectableConnection: Connection {
     }
 
     private class ReconnectableConnectionDelegate: ConnectionDelegate {
+        
+        func connectionDidFail(_ session: URLSession?, task: URLSessionTask?, at: TransportDidFailPoint, didCompleteWithError error: (any Error)?) {
+            guard let unwrappedConnection = self.connection else {
+                return
+            }
+            unwrappedConnection.delegate?.connectionDidFail(session, task: task, at: at, didCompleteWithError: error)
+        }
+        
         func connectionStateDidChange(state: HttpConnection.State) {}
         
         func connectionTransportDidChange(transport: Transport) {}

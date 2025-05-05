@@ -84,6 +84,8 @@
 		7391A95522510170007BEF23 /* HubConnectionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92022510170007BEF23 /* HubConnectionBuilder.swift */; };
 		7391A95622510170007BEF23 /* SignalRError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92122510170007BEF23 /* SignalRError.swift */; };
 		7391A95722510170007BEF23 /* SignalRError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92122510170007BEF23 /* SignalRError.swift */; };
+		F77F80BC2DC8B3CA007F9829 /* TransportDidFailPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */; };
+		F77F80BD2DC8B3CA007F9829 /* TransportDidFailPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -210,6 +212,7 @@
 		7391A91F22510170007BEF23 /* ConnectionDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionDelegate.swift; sourceTree = "<group>"; };
 		7391A92022510170007BEF23 /* HubConnectionBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HubConnectionBuilder.swift; sourceTree = "<group>"; };
 		7391A92122510170007BEF23 /* SignalRError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalRError.swift; sourceTree = "<group>"; };
+		F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportDidFailPoint.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -352,6 +355,7 @@
 		7391A90622510170007BEF23 /* SignalRClient */ = {
 			isa = PBXGroup;
 			children = (
+				F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */,
 				5AF2A1E52803939200715C2E /* HubConnectionOptions.swift */,
 				415F5B7124BCAC4C0071CE5C /* LongPollingTransport.swift */,
 				5ABD6A5F2439AE6B00BFA93D /* ReconnectableConnection.swift */,
@@ -613,6 +617,7 @@
 				5A3D4EFD22A4D0C2009B0C78 /* CodableHelpers.swift in Sources */,
 				7391A94522510170007BEF23 /* NegotiationResponse.swift in Sources */,
 				5AF2A1E72803939200715C2E /* HubConnectionOptions.swift in Sources */,
+				F77F80BC2DC8B3CA007F9829 /* TransportDidFailPoint.swift in Sources */,
 				7391A92722510170007BEF23 /* HttpConnectionOptions.swift in Sources */,
 				7391A93922510170007BEF23 /* HttpResponse.swift in Sources */,
 				7391A92922510170007BEF23 /* Connection.swift in Sources */,
@@ -650,6 +655,7 @@
 				5A3D4EFC22A4D0C2009B0C78 /* CodableHelpers.swift in Sources */,
 				7391A94422510170007BEF23 /* NegotiationResponse.swift in Sources */,
 				5AF2A1E62803939200715C2E /* HubConnectionOptions.swift in Sources */,
+				F77F80BD2DC8B3CA007F9829 /* TransportDidFailPoint.swift in Sources */,
 				7391A92622510170007BEF23 /* HttpConnectionOptions.swift in Sources */,
 				7391A93822510170007BEF23 /* HttpResponse.swift in Sources */,
 				7391A92822510170007BEF23 /* Connection.swift in Sources */,

@@ -245,6 +245,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
 extension ViewController: HubConnectionDelegate {
 
+    func connectionDidFail(_ session: URLSession?, task: URLSessionTask?, at: TransportDidFailPoint, didCompleteWithError error: (any Error)?) {
+        blockUI(message: "Connection failed to start.", error: error)
+    }
+    
+
     func connectionDidOpen(hubConnection: HubConnection) {
         toggleUI(isEnabled: true)
     }
