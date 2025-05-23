@@ -41,14 +41,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let alert = UIAlertController(title: "Enter your Name", message:"", preferredStyle: UIAlertController.Style.alert)
         alert.addTextField() { textField in textField.placeholder = "Name"}
         let OKAction = UIAlertAction(title: "OK", style: .default) { action in
-            (1...100).forEach { index in
+            (1...1000).forEach { index in
                 let randomTimeAwait = Double.random(in: 0.1..<0.7) * Double(Int.random(in: 1..<7))
                 DispatchQueue.global().asyncAfter(deadline: .now() + Double.random(in: 0.1..<0.7)) { [weak self] in
                     guard let self else { return }
                     let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
                         .withLogging(minLogLevel: .debug)
                         .withAutoReconnect()
-//                    chatHubConnection?.stop()
+                    chatHubConnection?.stop()
                     chatHubConnection = connection.build()
                     chatHubConnection!.delegate = self
                     chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
@@ -162,6 +162,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
     }
 
+    @IBAction func closeBtn(_ sender: Any) {
+        DispatchQueue.global().async { [weak self] in
+            guard let self else { return }
+            chatHubConnection?.stop()
+        }
+    }
+    
     private func restart() {
         restartQueue.async { [weak self] in
             guard let self else { return }
