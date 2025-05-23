@@ -12,6 +12,7 @@ import Foundation
 public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelegate {
     private let logger: Logger
     private let dispatchQueue = DispatchQueue(label: "SignalR.webSocketTransport.queue")
+    private let dispatchQueueWebSocket = DispatchQueue(label: "SignalR.websocket.queue")
     private var urlSession: URLSession?
     private var webSocketTask: URLSessionWebSocketTask?
     private var authenticationChallengeHandler: ((_ session: URLSession, _ challenge: URLAuthenticationChallenge, _ completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) -> Void)?
@@ -26,41 +27,50 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
     }
 
     public func start(url: URL, options: HttpConnectionOptions) {
-        logger.log(logLevel: .info, message: "Starting WebSocket transport")
+        dispatchQueueWebSocket.async { [weak self] in
+            guard let self else { return }
+            logger.log(logLevel: .info, message: "Starting WebSocket transport")
 
-        authenticationChallengeHandler = options.authenticationChallengeHandler
+            authenticationChallengeHandler = options.authenticationChallengeHandler
 
-        var request = URLRequest(url: convertUrl(url: url))
-        populateHeaders(headers: options.headers, request: &request)
-        setAccessToken(accessTokenProvider: options.accessTokenProvider, request: &request)
-        urlSession = URLSession(configuration: .ephemeral, delegate: self, delegateQueue: OperationQueue())
-        webSocketTask = urlSession!.webSocketTask(with: request)
-        if let maximumWebsocketMessageSize = options.maximumWebsocketMessageSize {
-            webSocketTask?.maximumMessageSize = maximumWebsocketMessageSize
+            var request = URLRequest(url: convertUrl(url: url))
+            populateHeaders(headers: options.headers, request: &request)
+            setAccessToken(accessTokenProvider: options.accessTokenProvider, request: &request)
+            urlSession = URLSession(configuration: .ephemeral, delegate: self, delegateQueue: OperationQueue())
+            webSocketTask = urlSession!.webSocketTask(with: request)
+            if let maximumWebsocketMessageSize = options.maximumWebsocketMessageSize {
+                webSocketTask?.maximumMessageSize = maximumWebsocketMessageSize
+            }
+
+            webSocketTask!.resume()
         }
-
-        webSocketTask!.resume()
     }
 
     public func send(data: Data, sendDidComplete: @escaping (Error?) -> Void) {
-        let message = URLSessionWebSocketTask.Message.data(data)
-        logger.log(logLevel: .info, message: "WSS sending data: \(message) sting: \(String(data: data, encoding: .utf8) ?? "<binary data>")")
-        guard webSocketTask?.state == .running else {
-            dispatchQueue.async { [weak self] in
-                guard let self else { return }
-                sendDidComplete(SignalRError.connectionIsBeingClosed)
-                isTransportClosed = true
-                delegate?.transportDidClose(SignalRError.connectionIsBeingClosed)
+        dispatchQueueWebSocket.async { [weak self] in
+            guard let self else { return }
+            let message = URLSessionWebSocketTask.Message.data(data)
+            logger.log(logLevel: .info, message: "WSS sending data: \(message) sting: \(String(data: data, encoding: .utf8) ?? "<binary data>")")
+            guard webSocketTask?.state == .running else {
+                dispatchQueue.async { [weak self] in
+                    guard let self else { return }
+                    sendDidComplete(SignalRError.connectionIsBeingClosed)
+                    isTransportClosed = true
+                    delegate?.transportDidClose(SignalRError.connectionIsBeingClosed)
+                }
+
+                return
             }
-      
-            return
+            webSocketTask?.send(message, completionHandler: sendDidComplete)
         }
-        webSocketTask?.send(message, completionHandler: sendDidComplete)
     }
 
     public func close() {
-        webSocketTask?.cancel(with: .normalClosure, reason: nil)
-        urlSession?.finishTasksAndInvalidate()
+        dispatchQueueWebSocket.async { [weak self] in
+            guard let self else { return }
+            webSocketTask?.cancel(with: .normalClosure, reason: nil)
+            urlSession?.finishTasksAndInvalidate()
+        }
     }
 
     public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
@@ -70,19 +80,26 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
     }
 
     private func readMessage()  {
-        webSocketTask?.receive { [weak self] result in
+        dispatchQueueWebSocket.async { [weak self] in
             guard let self else { return }
-            switch result {
-            case .failure(let error):
-                // This failure always occurs when the task is cancelled. If the code
-                // is not normalClosure this is a real error.
-                if self.webSocketTask?.closeCode != .normalClosure {
-                    delegate?.transportDidFail(nil, task: nil, at: .wssReceiveData, didCompleteWithError: error)
-                    handleError(error: error)
+            guard let webSocketTask = webSocketTask, webSocketTask.state == .running, !isTransportClosed else {
+                logger.log(logLevel: .debug, message: "readMessage called but WebSocket is not running or transport is closed.")
+                return
+            }
+            webSocketTask.receive { [weak self] result in
+                guard let self else { return }
+                switch result {
+                case .failure(let error):
+                    // This failure always occurs when the task is cancelled. If the code
+                    // is not normalClosure this is a real error.
+                    if self.webSocketTask?.closeCode != .normalClosure {
+                        delegate?.transportDidFail(nil, task: nil, at: .wssReceiveData, didCompleteWithError: error)
+                        handleError(error: error)
+                    }
+                case .success(let message):
+                    handleMessage(message: message)
+                    readMessage()
                 }
-            case .success(let message):
-                handleMessage(message: message)
-                readMessage()
             }
         }
     }

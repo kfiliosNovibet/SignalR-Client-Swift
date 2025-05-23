@@ -36,10 +36,25 @@ namespace TestServer
             // if (!hasAlreadyStartRT)
             // {
             hasAlreadyStartRT = true;
-            Clients.All.SendAsync("NewMessage", new MessageData("Server msg", RandomString(8)));
+            for (int i = 1; i <= 1000000000000; i++)
+            {
+                MessageData messageData = new MessageData("Server msg", RandomString(8));
+                Console.WriteLine(messageData);
+                Clients.All.SendAsync("NewMessage", messageData);
+                Thread.Sleep(500);
+            }
             // Clients.All.SendAsync("NewMessage", new MessageData("Server msg", "{\"type\":7,\"error\":\"Connection closed with an error.\",\"allowReconnect\":true}"));
             // repeateMessage(() => {  }, 5, cts.Token);
             // }
+            
+            // Thread thread = new Thread(() =>
+            // {
+            //     Thread.Sleep(2000);
+            //     Clients.All.
+            //     Console.WriteLine("Thread running separately.");
+            // });
+
+            // thread.Start();
 
             return Clients.All.SendAsync("NewMessage", sender, message);
         }

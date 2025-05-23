@@ -16,10 +16,10 @@ struct MessageData: Decodable {
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     // Update the Url accordingly
-    private let serverUrl = "http://10.130.81.194:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
+    private let serverUrl = "http://10.130.81.96:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
     private let dispatchQueue = DispatchQueue(label: "hubsamplephone.queue.dispatcheueu")
 
-    private var chatHubConnection: HubConnection?
+    @ReadWriteLock private var chatHubConnection: HubConnection?
     private var name = ""
     private var messages: [String] = []
     private var reconnectAlert: UIAlertController?
@@ -43,11 +43,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let OKAction = UIAlertAction(title: "OK", style: .default) { action in
             (1...100).forEach { index in
                 let randomTimeAwait = Double.random(in: 0.1..<0.7) * Double(Int.random(in: 1..<7))
-                DispatchQueue.global().async { [weak self] in
+                DispatchQueue.global().asyncAfter(deadline: .now() + Double.random(in: 0.1..<0.7)) { [weak self] in
                     guard let self else { return }
                     let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
                         .withLogging(minLogLevel: .debug)
                         .withAutoReconnect()
+//                    chatHubConnection?.stop()
                     chatHubConnection = connection.build()
                     chatHubConnection!.delegate = self
                     chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
@@ -62,6 +63,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                     })
                     chatHubConnection?.start()
                 }
+//                DispatchQueue.global().asyncAfter(deadline: .now() + Double.random(in: 5.1..<15.7)) { [weak self] in
+//                    guard let self else { return }
+//                    DispatchQueue.global().async { [weak self] in
+//                        guard let self else { return }
+//                        chatHubConnection?.start()
+//                    }
+//                    chatHubConnection?.stop()
+//                }
             }
 
             let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
@@ -205,10 +214,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            
-            self.chatTableView.beginUpdates()
-            self.chatTableView.insertRows(at: [IndexPath(row: messages.count - 1, section: 0)], with: .automatic)
-            self.chatTableView.endUpdates()
+            self.chatTableView.reloadData()
+
+//            self.chatTableView.beginUpdates()
+//            self.chatTableView.insertRows(at: [IndexPath(row: messages.count - 1, section: 0)], with: .automatic)
+//            self.chatTableView.endUpdates()
             self.chatTableView.scrollToRow(at: IndexPath(item: messages.count-1, section: 0), at: .bottom, animated: true)
         }
     }

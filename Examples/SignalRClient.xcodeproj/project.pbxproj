@@ -86,6 +86,7 @@
 		7391A95722510170007BEF23 /* SignalRError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92122510170007BEF23 /* SignalRError.swift */; };
 		F77F80BC2DC8B3CA007F9829 /* TransportDidFailPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */; };
 		F77F80BD2DC8B3CA007F9829 /* TransportDidFailPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */; };
+		F7D1FAAE2DE0564C00E6ECB5 /* ReadWriteLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -213,6 +214,7 @@
 		7391A92022510170007BEF23 /* HubConnectionBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HubConnectionBuilder.swift; sourceTree = "<group>"; };
 		7391A92122510170007BEF23 /* SignalRError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalRError.swift; sourceTree = "<group>"; };
 		F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportDidFailPoint.swift; sourceTree = "<group>"; };
+		F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadWriteLock.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -333,6 +335,7 @@
 		5AEC70EE20310E3E00616DD2 /* HubSamplePhone */ = {
 			isa = PBXGroup;
 			children = (
+				F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */,
 				5AEC70EF20310E3E00616DD2 /* AppDelegate.swift */,
 				5AEC70F120310E3E00616DD2 /* ViewController.swift */,
 				5AEC70F320310E3E00616DD2 /* Main.storyboard */,
@@ -706,6 +709,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F7D1FAAE2DE0564C00E6ECB5 /* ReadWriteLock.swift in Sources */,
 				5AEC70F220310E3E00616DD2 /* ViewController.swift in Sources */,
 				5AEC70F020310E3E00616DD2 /* AppDelegate.swift in Sources */,
 			);
