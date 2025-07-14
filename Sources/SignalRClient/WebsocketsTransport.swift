@@ -104,14 +104,27 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
         }
     }
 
+    // Sources/SignalRClient/WebsocketsTransport.swift
     private func handleMessage(message: URLSessionWebSocketTask.Message) {
         switch message {
         case .string(let text):
-            delegate?.transportDidReceiveData(text.data(using: .utf8)!)
+            guard let data = text.data(using: .utf8) else {
+                logger.log(logLevel: .warning, message: "Failed to convert text to UTF8 data: \(text)")
+                return
+            }
+            dispatchQueue.async { [weak self] in
+                guard let self = self else { return }
+                delegate?.transportDidReceiveData(data)
+            }
+
         case .data(let data):
-            delegate?.transportDidReceiveData(data)
+            dispatchQueue.async { [weak self] in
+                guard let self = self else { return }
+                delegate?.transportDidReceiveData(data)
+            }
+
         @unknown default:
-            fatalError()
+            logger.log(logLevel: .warning, message: "Received unknown WebSocket message type: \(message)")
         }
     }
 

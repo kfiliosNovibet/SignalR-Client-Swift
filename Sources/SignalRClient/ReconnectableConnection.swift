@@ -15,7 +15,7 @@ internal class ReconnectableConnection: Connection {
     private let reconnectPolicy: ReconnectPolicy
     private let logger: Logger
 
-    private var underlyingConnection: Connection?
+    @ReadWriteLock private var underlyingConnection: Connection?
     private var wrappedDelegate: ConnectionDelegate?
     private var state = State.disconnected
     private var failedAttemptsCount: Int = 0

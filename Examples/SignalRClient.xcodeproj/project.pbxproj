@@ -84,9 +84,11 @@
 		7391A95522510170007BEF23 /* HubConnectionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92022510170007BEF23 /* HubConnectionBuilder.swift */; };
 		7391A95622510170007BEF23 /* SignalRError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92122510170007BEF23 /* SignalRError.swift */; };
 		7391A95722510170007BEF23 /* SignalRError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92122510170007BEF23 /* SignalRError.swift */; };
+		F76A343A2E24ECFE009E0FAC /* ReadWriteLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */; };
+		F76A343B2E24ECFE009E0FAC /* ReadWriteLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */; };
+		F76A343D2E24ED1B009E0FAC /* ReadWriteLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76A343C2E24ED1B009E0FAC /* ReadWriteLock.swift */; };
 		F77F80BC2DC8B3CA007F9829 /* TransportDidFailPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */; };
 		F77F80BD2DC8B3CA007F9829 /* TransportDidFailPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */; };
-		F7D1FAAE2DE0564C00E6ECB5 /* ReadWriteLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -213,6 +215,7 @@
 		7391A91F22510170007BEF23 /* ConnectionDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionDelegate.swift; sourceTree = "<group>"; };
 		7391A92022510170007BEF23 /* HubConnectionBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HubConnectionBuilder.swift; sourceTree = "<group>"; };
 		7391A92122510170007BEF23 /* SignalRError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalRError.swift; sourceTree = "<group>"; };
+		F76A343C2E24ED1B009E0FAC /* ReadWriteLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadWriteLock.swift; sourceTree = "<group>"; };
 		F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportDidFailPoint.swift; sourceTree = "<group>"; };
 		F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadWriteLock.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -335,7 +338,7 @@
 		5AEC70EE20310E3E00616DD2 /* HubSamplePhone */ = {
 			isa = PBXGroup;
 			children = (
-				F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */,
+				F76A343C2E24ED1B009E0FAC /* ReadWriteLock.swift */,
 				5AEC70EF20310E3E00616DD2 /* AppDelegate.swift */,
 				5AEC70F120310E3E00616DD2 /* ViewController.swift */,
 				5AEC70F320310E3E00616DD2 /* Main.storyboard */,
@@ -389,6 +392,7 @@
 				7391A91F22510170007BEF23 /* ConnectionDelegate.swift */,
 				7391A92022510170007BEF23 /* HubConnectionBuilder.swift */,
 				7391A92122510170007BEF23 /* SignalRError.swift */,
+				F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */,
 			);
 			path = SignalRClient;
 			sourceTree = "<group>";
@@ -647,6 +651,7 @@
 				7391A92522510170007BEF23 /* WebsocketsTransport.swift in Sources */,
 				7391A92B22510170007BEF23 /* HubConnection.swift in Sources */,
 				7391A94F22510170007BEF23 /* JSONHubProtocol.swift in Sources */,
+				F76A343B2E24ECFE009E0FAC /* ReadWriteLock.swift in Sources */,
 				7391A95522510170007BEF23 /* HubConnectionBuilder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -685,6 +690,7 @@
 				7391A92422510170007BEF23 /* WebsocketsTransport.swift in Sources */,
 				7391A92A22510170007BEF23 /* HubConnection.swift in Sources */,
 				7391A94E22510170007BEF23 /* JSONHubProtocol.swift in Sources */,
+				F76A343A2E24ECFE009E0FAC /* ReadWriteLock.swift in Sources */,
 				7391A95422510170007BEF23 /* HubConnectionBuilder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -709,7 +715,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F7D1FAAE2DE0564C00E6ECB5 /* ReadWriteLock.swift in Sources */,
+				F76A343D2E24ED1B009E0FAC /* ReadWriteLock.swift in Sources */,
 				5AEC70F220310E3E00616DD2 /* ViewController.swift in Sources */,
 				5AEC70F020310E3E00616DD2 /* AppDelegate.swift in Sources */,
 			);
