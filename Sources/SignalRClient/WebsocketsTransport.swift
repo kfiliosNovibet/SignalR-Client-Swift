@@ -15,6 +15,7 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
     private let dispatchQueueWebSocket = DispatchQueue(label: "SignalR.websocket.queue")
     private var urlSession: URLSession?
     private var webSocketTask: URLSessionWebSocketTask?
+    @ReadWriteLock private var isInvalidated = false
     private var authenticationChallengeHandler: ((_ session: URLSession, _ challenge: URLAuthenticationChallenge, _ completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) -> Void)?
 
     private var isTransportClosed = false
@@ -24,6 +25,11 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
 
     init(logger: Logger) {
         self.logger = logger
+    }
+
+    deinit {
+        isInvalidated = true
+        webSocketTask?.cancel(with: .goingAway, reason: nil)
     }
 
     public func start(url: URL, options: HttpConnectionOptions) {
@@ -87,18 +93,19 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
                 return
             }
             webSocketTask.receive { [weak self] result in
-                guard let self else { return }
+                guard self?.isInvalidated == false else { return }
                 switch result {
                 case .failure(let error):
                     // This failure always occurs when the task is cancelled. If the code
                     // is not normalClosure this is a real error.
-                    if self.webSocketTask?.closeCode != .normalClosure {
-                        delegate?.transportDidFail(nil, task: nil, at: .wssReceiveData, didCompleteWithError: error)
-                        handleError(error: error)
+                    if self?.webSocketTask?.closeCode != .normalClosure {
+                        self?.delegate?.transportDidFail(nil, task: nil,
+                                                   at: .wssReceiveData, didCompleteWithError: error)
+                        self?.handleError(error: error)
                     }
                 case .success(let message):
-                    handleMessage(message: message)
-                    readMessage()
+                    self?.handleMessage(message: message)
+                    self?.readMessage()
                 }
             }
         }
