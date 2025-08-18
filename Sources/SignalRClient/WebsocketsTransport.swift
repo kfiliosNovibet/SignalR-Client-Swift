@@ -19,7 +19,7 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
 
     private var isTransportClosed = false
 
-    public  weak var delegate: TransportDelegate?
+    public weak var delegate: TransportDelegate?
     public let inherentKeepAlive = false
 
     init(logger: Logger) {
@@ -92,9 +92,12 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
                 case .failure(let error):
                     // This failure always occurs when the task is cancelled. If the code
                     // is not normalClosure this is a real error.
-                    if self.webSocketTask?.closeCode != .normalClosure {
-                        delegate?.transportDidFail(nil, task: nil, at: .wssReceiveData, didCompleteWithError: error)
-                        handleError(error: error)
+                    self.dispatchQueueWebSocket.async { [weak self] in
+                        guard let self else { return }
+                        if self.webSocketTask?.closeCode != .normalClosure {
+                            delegate?.transportDidFail(nil, task: nil, at: .wssReceiveData, didCompleteWithError: error)
+                            handleError(error: error)
+                        }
                     }
                 case .success(let message):
                     handleMessage(message: message)
