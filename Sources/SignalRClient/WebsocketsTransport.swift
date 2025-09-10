@@ -87,21 +87,21 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
                 return
             }
             webSocketTask.receive { [weak self] result in
-                guard let self else { return }
                 switch result {
                 case .failure(let error):
                     // This failure always occurs when the task is cancelled. If the code
                     // is not normalClosure this is a real error.
-                    self.dispatchQueueWebSocket.async { [weak self] in
+                    self?.dispatchQueueWebSocket.async { [weak self] in
                         guard let self else { return }
                         if self.webSocketTask?.closeCode != .normalClosure {
-                            delegate?.transportDidFail(nil, task: nil, at: .wssReceiveData, didCompleteWithError: error)
-                            handleError(error: error)
+                            self.delegate?.transportDidFail(nil, task: nil, at: .wssReceiveData, didCompleteWithError: error)
+                            self.handleError(error: error)
                         }
                     }
                 case .success(let message):
-                    handleMessage(message: message)
-                    readMessage()
+                    guard let self else { return }
+                    self.handleMessage(message: message)
+                    self.readMessage()
                 }
             }
         }
