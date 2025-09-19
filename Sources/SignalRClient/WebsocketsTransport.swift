@@ -81,9 +81,8 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
 
     private func readMessage()  {
         dispatchQueueWebSocket.async { [weak self] in
-            guard let self else { return }
-            guard let webSocketTask = webSocketTask, webSocketTask.state == .running, !isTransportClosed else {
-                logger.log(logLevel: .debug, message: "readMessage called but WebSocket is not running or transport is closed.")
+            guard let webSocketTask = self?.webSocketTask, webSocketTask.state == .running, self?.isTransportClosed == false else {
+                self?.logger.log(logLevel: .debug, message: "readMessage called but WebSocket is not running or transport is closed.")
                 return
             }
             webSocketTask.receive { [weak self] result in
@@ -92,10 +91,9 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
                     // This failure always occurs when the task is cancelled. If the code
                     // is not normalClosure this is a real error.
                     self?.dispatchQueueWebSocket.async { [weak self] in
-                        guard let self else { return }
-                        if self.webSocketTask?.closeCode != .normalClosure {
-                            self.delegate?.transportDidFail(nil, task: nil, at: .wssReceiveData, didCompleteWithError: error)
-                            self.handleError(error: error)
+                        if self?.webSocketTask?.closeCode != .normalClosure {
+                            self?.delegate?.transportDidFail(nil, task: nil, at: .wssReceiveData, didCompleteWithError: error)
+                            self?.handleError(error: error)
                         }
                     }
                 case .success(let message):
