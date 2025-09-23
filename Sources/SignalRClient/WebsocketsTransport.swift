@@ -192,8 +192,10 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
     }
 
     private func shutdownTransport() {
-        webSocketTask?.cancel(with: .normalClosure, reason: nil)
-        urlSession?.finishTasksAndInvalidate()
+        dispatchQueueWebSocket.async { [weak self] in
+            self?.webSocketTask?.cancel(with: .normalClosure, reason: nil)
+            self?.urlSession?.finishTasksAndInvalidate()
+        }
     }
 
     private func convertUrl(url: URL) -> URL {
