@@ -19,7 +19,7 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
 
     private var isTransportClosed = false
 
-    public  weak var delegate: TransportDelegate?
+    public weak var delegate: TransportDelegate?
     public let inherentKeepAlive = false
 
     init(logger: Logger) {
@@ -81,24 +81,25 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
 
     private func readMessage()  {
         dispatchQueueWebSocket.async { [weak self] in
-            guard let self else { return }
-            guard let webSocketTask = webSocketTask, webSocketTask.state == .running, !isTransportClosed else {
-                logger.log(logLevel: .debug, message: "readMessage called but WebSocket is not running or transport is closed.")
+            guard let webSocketTask = self?.webSocketTask, webSocketTask.state == .running, self?.isTransportClosed == false else {
+                self?.logger.log(logLevel: .debug, message: "readMessage called but WebSocket is not running or transport is closed.")
                 return
             }
             webSocketTask.receive { [weak self] result in
-                guard let self else { return }
                 switch result {
                 case .failure(let error):
                     // This failure always occurs when the task is cancelled. If the code
                     // is not normalClosure this is a real error.
-                    if self.webSocketTask?.closeCode != .normalClosure {
-                        delegate?.transportDidFail(nil, task: nil, at: .wssReceiveData, didCompleteWithError: error)
-                        handleError(error: error)
+                    self?.dispatchQueueWebSocket.async { [weak self] in
+                        if self?.webSocketTask?.closeCode != .normalClosure {
+                            self?.delegate?.transportDidFail(nil, task: nil, at: .wssReceiveData, didCompleteWithError: error)
+                            self?.handleError(error: error)
+                        }
                     }
                 case .success(let message):
-                    handleMessage(message: message)
-                    readMessage()
+                    guard let self else { return }
+                    self.handleMessage(message: message)
+                    self.readMessage()
                 }
             }
         }
@@ -191,8 +192,10 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
     }
 
     private func shutdownTransport() {
-        webSocketTask?.cancel(with: .normalClosure, reason: nil)
-        urlSession?.finishTasksAndInvalidate()
+        dispatchQueueWebSocket.async { [weak self] in
+            self?.webSocketTask?.cancel(with: .normalClosure, reason: nil)
+            self?.urlSession?.finishTasksAndInvalidate()
+        }
     }
 
     private func convertUrl(url: URL) -> URL {
