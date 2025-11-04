@@ -450,6 +450,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				F763403F2EBA362600D6020D /* PBXTargetDependency */,
 			);
 			name = "iOS SignalRClient";
 			productName = "iOS SignalRClient";
@@ -469,6 +470,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				F763403D2EBA362000D6020D /* PBXTargetDependency */,
 			);
 			name = "macOS SignalRClient";
 			productName = SignalRClient;
@@ -767,6 +769,14 @@
 			isa = PBXTargetDependency;
 			target = 5A406F3D2030F4960055671E /* iOS SignalRClient */;
 			targetProxy = 5AEC7101203111F900616DD2 /* PBXContainerItemProxy */;
+		};
+		F763403D2EBA362000D6020D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = F763403C2EBA362000D6020D /* Atomics */;
+		};
+		F763403F2EBA362600D6020D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = F763403E2EBA362600D6020D /* Atomics */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1248,6 +1258,16 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		F763403A2EBA356A00D6020D /* Atomics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F763FA2C2EB9428100D6020D /* XCRemoteSwiftPackageReference "swift-atomics" */;
+			productName = Atomics;
+		};
+		F763403C2EBA362000D6020D /* Atomics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F763FA2C2EB9428100D6020D /* XCRemoteSwiftPackageReference "swift-atomics" */;
+			productName = Atomics;
+		};
+		F763403E2EBA362600D6020D /* Atomics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F763FA2C2EB9428100D6020D /* XCRemoteSwiftPackageReference "swift-atomics" */;
 			productName = Atomics;
