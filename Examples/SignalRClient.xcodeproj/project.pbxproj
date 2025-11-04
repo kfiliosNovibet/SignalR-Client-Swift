@@ -84,6 +84,7 @@
 		7391A95522510170007BEF23 /* HubConnectionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92022510170007BEF23 /* HubConnectionBuilder.swift */; };
 		7391A95622510170007BEF23 /* SignalRError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92122510170007BEF23 /* SignalRError.swift */; };
 		7391A95722510170007BEF23 /* SignalRError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92122510170007BEF23 /* SignalRError.swift */; };
+		F763403B2EBA356A00D6020D /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = F763403A2EBA356A00D6020D /* Atomics */; };
 		F763FA2A2EB9424E00D6020D /* FCFSLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F763FA292EB9424E00D6020D /* FCFSLock.swift */; };
 		F763FA2B2EB9424E00D6020D /* FairLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F763FA282EB9424E00D6020D /* FairLock.swift */; };
 		F763FA2E2EB9429F00D6020D /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = F763FA2D2EB9429F00D6020D /* Atomics */; };
@@ -247,6 +248,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5A4292F7208D2A4A008B30EF /* libz.tbd in Frameworks */,
+				F763403B2EBA356A00D6020D /* Atomics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1245,6 +1247,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		F763403A2EBA356A00D6020D /* Atomics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F763FA2C2EB9428100D6020D /* XCRemoteSwiftPackageReference "swift-atomics" */;
+			productName = Atomics;
+		};
 		F763FA2D2EB9429F00D6020D /* Atomics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F763FA2C2EB9428100D6020D /* XCRemoteSwiftPackageReference "swift-atomics" */;
