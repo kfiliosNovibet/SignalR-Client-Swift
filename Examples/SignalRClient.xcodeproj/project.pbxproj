@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -84,6 +84,16 @@
 		7391A95522510170007BEF23 /* HubConnectionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92022510170007BEF23 /* HubConnectionBuilder.swift */; };
 		7391A95622510170007BEF23 /* SignalRError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92122510170007BEF23 /* SignalRError.swift */; };
 		7391A95722510170007BEF23 /* SignalRError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7391A92122510170007BEF23 /* SignalRError.swift */; };
+		F763FA2A2EB9424E00D6020D /* FCFSLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F763FA292EB9424E00D6020D /* FCFSLock.swift */; };
+		F763FA2B2EB9424E00D6020D /* FairLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F763FA282EB9424E00D6020D /* FairLock.swift */; };
+		F763FA2E2EB9429F00D6020D /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = F763FA2D2EB9429F00D6020D /* Atomics */; };
+		F763FA312EB942BC00D6020D /* FairLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F763FA2F2EB942BC00D6020D /* FairLock.swift */; };
+		F763FA322EB942BC00D6020D /* FCFSLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F763FA302EB942BC00D6020D /* FCFSLock.swift */; };
+		F763FA332EB942BC00D6020D /* FairLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F763FA2F2EB942BC00D6020D /* FairLock.swift */; };
+		F763FA342EB942BC00D6020D /* FCFSLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F763FA302EB942BC00D6020D /* FCFSLock.swift */; };
+		F763FA362EB942CD00D6020D /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = F763FA352EB942CD00D6020D /* Atomics */; };
+		F763FA382EB9431C00D6020D /* ReadWriteLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F763FA372EB9431C00D6020D /* ReadWriteLock.swift */; };
+		F763FA392EB9431C00D6020D /* ReadWriteLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F763FA372EB9431C00D6020D /* ReadWriteLock.swift */; };
 		F77F80BC2DC8B3CA007F9829 /* TransportDidFailPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */; };
 		F77F80BD2DC8B3CA007F9829 /* TransportDidFailPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */; };
 		F7D1FAAE2DE0564C00E6ECB5 /* ReadWriteLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */; };
@@ -213,6 +223,11 @@
 		7391A91F22510170007BEF23 /* ConnectionDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionDelegate.swift; sourceTree = "<group>"; };
 		7391A92022510170007BEF23 /* HubConnectionBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HubConnectionBuilder.swift; sourceTree = "<group>"; };
 		7391A92122510170007BEF23 /* SignalRError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignalRError.swift; sourceTree = "<group>"; };
+		F763FA282EB9424E00D6020D /* FairLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FairLock.swift; sourceTree = "<group>"; };
+		F763FA292EB9424E00D6020D /* FCFSLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCFSLock.swift; sourceTree = "<group>"; };
+		F763FA2F2EB942BC00D6020D /* FairLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FairLock.swift; sourceTree = "<group>"; };
+		F763FA302EB942BC00D6020D /* FCFSLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCFSLock.swift; sourceTree = "<group>"; };
+		F763FA372EB9431C00D6020D /* ReadWriteLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadWriteLock.swift; sourceTree = "<group>"; };
 		F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportDidFailPoint.swift; sourceTree = "<group>"; };
 		F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadWriteLock.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -223,6 +238,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5A4292F9208D2A59008B30EF /* libz.tbd in Frameworks */,
+				F763FA362EB942CD00D6020D /* Atomics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -252,6 +268,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F763FA2E2EB9429F00D6020D /* Atomics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -335,6 +352,8 @@
 		5AEC70EE20310E3E00616DD2 /* HubSamplePhone */ = {
 			isa = PBXGroup;
 			children = (
+				F763FA282EB9424E00D6020D /* FairLock.swift */,
+				F763FA292EB9424E00D6020D /* FCFSLock.swift */,
 				F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */,
 				5AEC70EF20310E3E00616DD2 /* AppDelegate.swift */,
 				5AEC70F120310E3E00616DD2 /* ViewController.swift */,
@@ -358,6 +377,9 @@
 		7391A90622510170007BEF23 /* SignalRClient */ = {
 			isa = PBXGroup;
 			children = (
+				F763FA372EB9431C00D6020D /* ReadWriteLock.swift */,
+				F763FA2F2EB942BC00D6020D /* FairLock.swift */,
+				F763FA302EB942BC00D6020D /* FCFSLock.swift */,
 				F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */,
 				5AF2A1E52803939200715C2E /* HubConnectionOptions.swift */,
 				415F5B7124BCAC4C0071CE5C /* LongPollingTransport.swift */,
@@ -554,6 +576,9 @@
 				Base,
 			);
 			mainGroup = 5A9803481E5FE60E00BFFB0A;
+			packageReferences = (
+				F763FA2C2EB9428100D6020D /* XCRemoteSwiftPackageReference "swift-atomics" */,
+			);
 			productRefGroup = 5A9803531E5FE60E00BFFB0A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -625,6 +650,8 @@
 				7391A93922510170007BEF23 /* HttpResponse.swift in Sources */,
 				7391A92922510170007BEF23 /* Connection.swift in Sources */,
 				7391A93D22510170007BEF23 /* StreamHandle.swift in Sources */,
+				F763FA312EB942BC00D6020D /* FairLock.swift in Sources */,
+				F763FA322EB942BC00D6020D /* FCFSLock.swift in Sources */,
 				7391A95122510170007BEF23 /* HttpConnection.swift in Sources */,
 				5A13255722B0CCBC0082C783 /* HubConnectionExtensions.swift in Sources */,
 				7391A94122510170007BEF23 /* HubConnectionDelegate.swift in Sources */,
@@ -639,6 +666,7 @@
 				7391A93B22510170007BEF23 /* TransportDelegate.swift in Sources */,
 				415F5B7324BCAC500071CE5C /* LongPollingTransport.swift in Sources */,
 				7391A92D22510170007BEF23 /* TransportType.swift in Sources */,
+				F763FA382EB9431C00D6020D /* ReadWriteLock.swift in Sources */,
 				7391A92322510170007BEF23 /* Transport.swift in Sources */,
 				7391A93322510170007BEF23 /* DefaultTransportFactory.swift in Sources */,
 				7391A95722510170007BEF23 /* SignalRError.swift in Sources */,
@@ -663,6 +691,8 @@
 				7391A93822510170007BEF23 /* HttpResponse.swift in Sources */,
 				7391A92822510170007BEF23 /* Connection.swift in Sources */,
 				7391A93C22510170007BEF23 /* StreamHandle.swift in Sources */,
+				F763FA332EB942BC00D6020D /* FairLock.swift in Sources */,
+				F763FA342EB942BC00D6020D /* FCFSLock.swift in Sources */,
 				7391A95022510170007BEF23 /* HttpConnection.swift in Sources */,
 				5A13255622B0CCBC0082C783 /* HubConnectionExtensions.swift in Sources */,
 				7391A94022510170007BEF23 /* HubConnectionDelegate.swift in Sources */,
@@ -677,6 +707,7 @@
 				7391A93A22510170007BEF23 /* TransportDelegate.swift in Sources */,
 				415F5B7224BCAC4C0071CE5C /* LongPollingTransport.swift in Sources */,
 				7391A92C22510170007BEF23 /* TransportType.swift in Sources */,
+				F763FA392EB9431C00D6020D /* ReadWriteLock.swift in Sources */,
 				7391A92222510170007BEF23 /* Transport.swift in Sources */,
 				7391A93222510170007BEF23 /* DefaultTransportFactory.swift in Sources */,
 				7391A95622510170007BEF23 /* SignalRError.swift in Sources */,
@@ -709,6 +740,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F763FA2A2EB9424E00D6020D /* FCFSLock.swift in Sources */,
+				F763FA2B2EB9424E00D6020D /* FairLock.swift in Sources */,
 				F7D1FAAE2DE0564C00E6ECB5 /* ReadWriteLock.swift in Sources */,
 				5AEC70F220310E3E00616DD2 /* ViewController.swift in Sources */,
 				5AEC70F020310E3E00616DD2 /* AppDelegate.swift in Sources */,
@@ -788,7 +821,11 @@
 				INFOPLIST_FILE = SignalRClient/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "moozzyk.iOS-SignalRClient";
 				PRODUCT_NAME = SignalRClient;
 				SDKROOT = iphoneos;
@@ -815,7 +852,11 @@
 				INFOPLIST_FILE = SignalRClient/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "moozzyk.iOS-SignalRClient";
 				PRODUCT_NAME = SignalRClient;
 				SDKROOT = iphoneos;
@@ -938,7 +979,8 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -959,7 +1001,11 @@
 				FRAMEWORK_VERSION = A;
 				INFOPLIST_FILE = SignalRClient/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = moozzyk.SignalRClient;
 				PRODUCT_NAME = SignalRClient;
@@ -984,7 +1030,11 @@
 				FRAMEWORK_VERSION = A;
 				INFOPLIST_FILE = SignalRClient/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = moozzyk.SignalRClient;
 				PRODUCT_NAME = SignalRClient;
@@ -1002,7 +1052,10 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = ConnectionSample/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = moozzyk.ConnectionSample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -1018,7 +1071,10 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = ConnectionSample/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = moozzyk.ConnectionSample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -1034,7 +1090,10 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = HubSample/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = moozzyk.HubSample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -1050,7 +1109,10 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = HubSample/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = moozzyk.HubSample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -1067,12 +1129,16 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = K8A9GZ95QZ;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = HubSamplePhone/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = moozzyk.HubSamplePhone;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = kfilios.HubSamplePhone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -1090,12 +1156,16 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = K8A9GZ95QZ;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = HubSamplePhone/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = moozzyk.HubSamplePhone;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = kfilios.HubSamplePhone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -1162,6 +1232,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F763FA2C2EB9428100D6020D /* XCRemoteSwiftPackageReference "swift-atomics" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-atomics.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F763FA2D2EB9429F00D6020D /* Atomics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F763FA2C2EB9428100D6020D /* XCRemoteSwiftPackageReference "swift-atomics" */;
+			productName = Atomics;
+		};
+		F763FA352EB942CD00D6020D /* Atomics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F763FA2C2EB9428100D6020D /* XCRemoteSwiftPackageReference "swift-atomics" */;
+			productName = Atomics;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5A9803491E5FE60E00BFFB0A /* Project object */;
 }

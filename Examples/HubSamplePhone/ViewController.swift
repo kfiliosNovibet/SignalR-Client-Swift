@@ -16,7 +16,7 @@ struct MessageData: Decodable {
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     // Update the Url accordingly
-    private let serverUrl = "http://10.130.81.96:5000/chat"  // /chat or /chatLongPolling or /chatWebSockets
+    private let serverUrl = "http://192.168.1.108:4060/chat"  // /chat or /chatLongPolling or /chatWebSockets
     private let dispatchQueue = DispatchQueue(label: "hubsamplephone.queue.dispatcheueu")
 
     @ReadWriteLock private var chatHubConnection: HubConnection?
@@ -40,38 +40,45 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
         let alert = UIAlertController(title: "Enter your Name", message:"", preferredStyle: UIAlertController.Style.alert)
         alert.addTextField() { textField in textField.placeholder = "Name"}
-        let OKAction = UIAlertAction(title: "OK", style: .default) { action in
-            (1...1000).forEach { index in
-                let randomTimeAwait = Double.random(in: 0.1..<0.7) * Double(Int.random(in: 1..<7))
-                DispatchQueue.global().asyncAfter(deadline: .now() + Double.random(in: 0.1..<0.7)) { [weak self] in
-                    guard let self else { return }
-                    let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
-                        .withLogging(minLogLevel: .debug)
-                        .withAutoReconnect()
-                    chatHubConnection?.stop()
-                    chatHubConnection = connection.build()
-                    chatHubConnection!.delegate = self
-                    chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
-                        do {
-                            let messageData = try data.getArgument(type: MessageData.self)
-                            guard let self else { return }
-                            let test = data.getArgumentsDicts()
-                            self.appendMessage(message: "\(messageData.user): \(messageData.message)")
-                        } catch (let error) {
-                            print(error.localizedDescription)
-                        }
-                    })
-                    chatHubConnection?.start()
-                }
-//                DispatchQueue.global().asyncAfter(deadline: .now() + Double.random(in: 5.1..<15.7)) { [weak self] in
+        let OKAction = UIAlertAction(title: "OK", style: .default) { [weak self] action in
+            guard let self else { return }
+            name = alert.textFields?.first?.text ?? "Anonymous"
+//            (1...100).forEach { index in
+//                let randomTimeAwait = Double.random(in: 0.1..<0.7) * Double(Int.random(in: 1..<7))
+//                DispatchQueue.global().asyncAfter(deadline: .now() + Double.random(in: 0.1..<0.7)) { [weak self] in
 //                    guard let self else { return }
-//                    DispatchQueue.global().async { [weak self] in
-//                        guard let self else { return }
-//                        chatHubConnection?.start()
-//                    }
+//                    let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
+//                        .withLogging(minLogLevel: .debug)
+//                        .withAutoReconnect()
 //                    chatHubConnection?.stop()
+//                    chatHubConnection = connection.build()
+//                    chatHubConnection!.delegate = self
+//                    chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
+//                        do {
+//                            let messageData = try data.getArgument(type: MessageData.self)
+//                            guard let self else { return }
+//                            let test = data.getArgumentsDicts()
+//                            self.appendMessage(message: "\(messageData.user): \(messageData.message)")
+//                        } catch (let error) {
+//                            print(error.localizedDescription)
+//                        }
+//                    })
+//                    chatHubConnection?.start()
+////                    chatHubConnection?.invoke(method: "Broadcast", name, "test") { error in
+////                        if let e = error {
+////                            self.appendMessage(message: "Error: \(e)")
+////                        }
+////                    }
 //                }
-            }
+////                DispatchQueue.global().asyncAfter(deadline: .now() + Double.random(in: 5.1..<15.7)) { [weak self] in
+////                    guard let self else { return }
+////                    DispatchQueue.global().async { [weak self] in
+////                        guard let self else { return }
+////                        chatHubConnection?.start()
+////                    }
+////                    chatHubConnection?.stop()
+////                }
+//            }
 
             let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
                 .withLogging(minLogLevel: .debug)
@@ -144,22 +151,22 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     @IBAction func btnSend(_ sender: Any) {
         let message = msgTextField.text
-        if message == "asdf" {
-            chatHubConnection?.invoke(method: "Broadcasts", message) { error in
-                if let e = error {
-                    self.appendMessage(message: "Error: \(e)")
-                }
-            }
-            msgTextField.text = ""
-        }
-        if message != "" {
+//        if message == "asdf" {
             chatHubConnection?.invoke(method: "Broadcast", name, message) { error in
                 if let e = error {
                     self.appendMessage(message: "Error: \(e)")
                 }
             }
             msgTextField.text = ""
-        }
+//        }
+//        if message != "" {
+//            chatHubConnection?.invoke(method: "Broadcast", name, message) { error in
+//                if let e = error {
+//                    self.appendMessage(message: "Error: \(e)")
+//                }
+//            }
+//            msgTextField.text = ""
+//        }
     }
 
     @IBAction func closeBtn(_ sender: Any) {
@@ -295,6 +302,7 @@ extension ViewController: HubConnectionDelegate {
     func connectionDidReconnect() {
         reconnectAlert?.dismiss(animated: true, completion: nil)
         reconnectAlert = nil
+        toggleUI(isEnabled: true)
     }
 
 //    func connectionDidOpen(hubConnection: HubConnection) {

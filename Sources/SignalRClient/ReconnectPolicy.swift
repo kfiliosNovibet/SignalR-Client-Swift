@@ -43,7 +43,7 @@ public class DefaultReconnectPolicy: ReconnectPolicy {
      - note: when providing own `retryIntervals` the client will attempt to re-establish the connection at most as many times as the number of provided
              intervals. If this fails the connection will be stopped.
      */
-    public init(retryIntervals: [DispatchTimeInterval] = [.milliseconds(0), .seconds(2), .seconds(10), .seconds(30)]) {
+    public init(retryIntervals: [DispatchTimeInterval] = [.milliseconds(0), .seconds(2), .seconds(5), .seconds(10), .seconds(30)]) {
         self.retryIntervals = retryIntervals
     }
 
