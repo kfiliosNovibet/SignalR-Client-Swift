@@ -18,6 +18,8 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
 
     @FairLock private var isTransportClosed = false
 
+    private let cancellationToken = CancellationToken()
+
     public weak var delegate: TransportDelegate?
     public let inherentKeepAlive = false
 
@@ -26,6 +28,9 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
     }
 
     public func start(url: URL, options: HttpConnectionOptions) {
+            // Reset cancellation token for transport reuse (start → stop → start)
+            cancellationToken.isCancelled = false
+            isTransportClosed = false
             logger.log(logLevel: .info, message: "Starting WebSocket transport")
 
             authenticationChallengeHandler = options.authenticationChallengeHandler
@@ -58,6 +63,9 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
     }
 
     public func close() {
+            // Set cancellation token FIRST to prevent pending callbacks from
+            // accessing [weak self] during deallocation (objc_loadWeakRetained crash)
+            cancellationToken.isCancelled = true
             webSocketTask?.cancel(with: .normalClosure, reason: nil)
             urlSession?.finishTasksAndInvalidate()
     }
@@ -73,7 +81,19 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
                 logger.log(logLevel: .debug, message: "readMessage called but WebSocket is not running or transport is closed.")
                 return
             }
+
+            // Capture cancellation token strongly BEFORE the callback.
+            // This allows us to check cancellation before accessing [weak self],
+            // preventing objc_loadWeakRetained crash when self is deallocating.
+            let token = cancellationToken
+
             webSocketTask.receive { [weak self] result in
+                // Check cancellation token FIRST - this generates a regular 'load' SIL instruction,
+                // not 'load_weak', so it's safe even if self is in zombie state.
+                guard token.isCancelled == false else { return }
+
+                // Now safe to access [weak self] - if we reach here, token wasn't cancelled
+                // which means close() hasn't been called yet.
                 switch result {
                 case .failure(let error):
                     // This failure always occurs when the task is cancelled. If the code
@@ -168,6 +188,8 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
 
     private func markTransportClosed() -> Bool {
         logger.log(logLevel: .debug, message: "Marking transport as closed.")
+        // Also cancel the token when marking transport as closed
+        cancellationToken.isCancelled = true
         var previousCloseStatus = false
         dispatchQueue.sync { [weak self] in
             guard let self else { return }

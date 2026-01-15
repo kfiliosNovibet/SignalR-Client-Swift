@@ -98,6 +98,8 @@
 		F77F80BC2DC8B3CA007F9829 /* TransportDidFailPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */; };
 		F77F80BD2DC8B3CA007F9829 /* TransportDidFailPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */; };
 		F7D1FAAE2DE0564C00E6ECB5 /* ReadWriteLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */; };
+		F7F8E9D52F18F2B8002DEBD7 /* CancellationToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7F8E9D42F18F2B8002DEBD7 /* CancellationToken.swift */; };
+		F7F8E9D62F18F2B8002DEBD7 /* CancellationToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7F8E9D42F18F2B8002DEBD7 /* CancellationToken.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -231,6 +233,7 @@
 		F763FA372EB9431C00D6020D /* ReadWriteLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadWriteLock.swift; sourceTree = "<group>"; };
 		F77F80BB2DC8B3CA007F9829 /* TransportDidFailPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportDidFailPoint.swift; sourceTree = "<group>"; };
 		F7D1FAAD2DE0564C00E6ECB5 /* ReadWriteLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadWriteLock.swift; sourceTree = "<group>"; };
+		F7F8E9D42F18F2B8002DEBD7 /* CancellationToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancellationToken.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -379,6 +382,7 @@
 		7391A90622510170007BEF23 /* SignalRClient */ = {
 			isa = PBXGroup;
 			children = (
+				F7F8E9D42F18F2B8002DEBD7 /* CancellationToken.swift */,
 				F763FA372EB9431C00D6020D /* ReadWriteLock.swift */,
 				F763FA2F2EB942BC00D6020D /* FairLock.swift */,
 				F763FA302EB942BC00D6020D /* FCFSLock.swift */,
@@ -659,6 +663,7 @@
 				7391A95122510170007BEF23 /* HttpConnection.swift in Sources */,
 				5A13255722B0CCBC0082C783 /* HubConnectionExtensions.swift in Sources */,
 				7391A94122510170007BEF23 /* HubConnectionDelegate.swift in Sources */,
+				F7F8E9D62F18F2B8002DEBD7 /* CancellationToken.swift in Sources */,
 				7391A95322510170007BEF23 /* ConnectionDelegate.swift in Sources */,
 				5ABD6A612439AE6B00BFA93D /* ReconnectPolicy.swift in Sources */,
 				7391A92F22510170007BEF23 /* ServerInvocationHandler.swift in Sources */,
@@ -700,6 +705,7 @@
 				7391A95022510170007BEF23 /* HttpConnection.swift in Sources */,
 				5A13255622B0CCBC0082C783 /* HubConnectionExtensions.swift in Sources */,
 				7391A94022510170007BEF23 /* HubConnectionDelegate.swift in Sources */,
+				F7F8E9D52F18F2B8002DEBD7 /* CancellationToken.swift in Sources */,
 				7391A95222510170007BEF23 /* ConnectionDelegate.swift in Sources */,
 				5ABD6A602439AE6B00BFA93D /* ReconnectPolicy.swift in Sources */,
 				7391A92E22510170007BEF23 /* ServerInvocationHandler.swift in Sources */,

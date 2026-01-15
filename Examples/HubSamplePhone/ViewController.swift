@@ -16,7 +16,7 @@ struct MessageData: Decodable {
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     // Update the Url accordingly
-    private let serverUrl = "http://192.168.1.108:4060/chat"  // /chat or /chatLongPolling or /chatWebSockets
+    private let serverUrl = "http://192.168.1.109:4060/chat"  // /chat or /chatLongPolling or /chatWebSockets
     private let dispatchQueue = DispatchQueue(label: "hubsamplephone.queue.dispatcheueu")
 
     @ReadWriteLock private var chatHubConnection: HubConnection?
@@ -25,6 +25,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     private var reconnectAlert: UIAlertController?
     private var startTask: Task<Void,Error>?
     private let restartQueue = DispatchQueue(label: "ThreadSafeRestart")
+    @FairLock var connections: [HubConnection] = []
 
     @IBOutlet weak var sendButton: UIButton!
     @IBOutlet weak var chatTableView: UITableView!
@@ -34,6 +35,47 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         super.viewDidLoad()
         self.chatTableView.delegate = self
         self.chatTableView.dataSource = self
+
+//        let queue = DispatchQueue(label: "test")
+//        queue.async() { [weak self] in
+//            (1...50).forEach { index in
+//                // Create connection on background thread with random delay
+//                let queueInst = DispatchQueue(label: "test_\(index)")
+//                queueInst.async() { [weak self] in
+//                    guard let self else { return }
+//                    let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
+//                        .withLogging(minLogLevel: .debug)
+//                        .withAutoReconnect()
+//                        .build()
+//
+//                    connection.delegate = self
+//                    connection.on(method: "NewMessage", callback: { _ in })
+//                    connection.start()
+//
+//                    // Store temporarily
+//                    connections.append(connection)
+//
+//                    // Stop after random delay (while receive might be pending)
+//                    DispatchQueue.global().asyncAfter(deadline: .now() + Double.random(in: 10...20)) {
+//                        let currentTime = Date().timeIntervalSince1970 * 1000
+//                        connection.invoke(method: "Broadcast", "name", "Hello from \(index) 1_50") { error in
+//                            if let e = error {
+//                                self.appendMessage(message: "Error: \(e)")
+//                            }
+//                            print("The message time is \((Date().timeIntervalSince1970 * 1000) - currentTime)")
+//                        }
+//                        DispatchQueue.global().asyncAfter(deadline: .now() + Double.random(in: 0.01...0.7)) {
+//                            connection.stop()
+//                        }
+//
+//                        // Remove from array to allow deallocation
+//                        //                    DispatchQueue.main.async { [weak self] in
+//                        ////                              self?.connections.removeAll { $0 === connection }
+//                        //                    }
+//                    }
+//                }
+//            }
+//        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -79,23 +121,48 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 ////                    chatHubConnection?.stop()
 ////                }
 //            }
+//            (1...100).forEach { index in
+                self.chatHubConnection?.stop()
+                let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
+                    .withLogging(minLogLevel: .debug)
+                    .withAutoReconnect()
+                self.chatHubConnection = connection.build()
+                self.chatHubConnection!.delegate = self
+                self.chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
+                    do {
+                        let messageData = try data.getArgument(type: MessageData.self)
+                        guard let self else { return }
+                        let test = data.getArgumentsDicts()
+                        self.appendMessage(message: "\(messageData.user): \(messageData.message)")
+                    } catch (let error) {
+                        print(error.localizedDescription)
+                    }
+                })
+                self.chatHubConnection?.start()
+//            }
 
-            let connection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
-                .withLogging(minLogLevel: .debug)
-                .withAutoReconnect()
-            self.chatHubConnection = connection.build()
-            self.chatHubConnection!.delegate = self
-            self.chatHubConnection!.on(method: "NewMessage", callback: {[weak self] data in
-                do {
-                    let messageData = try data.getArgument(type: MessageData.self)
-                    guard let self else { return }
-                    let test = data.getArgumentsDicts()
-                    self.appendMessage(message: "\(messageData.user): \(messageData.message)")
-                } catch (let error) {
-                    print(error.localizedDescription)
-                }
-            })
-            self.chatHubConnection?.start()
+//            (1...100).forEach { index in
+//                  DispatchQueue.global().async {
+//                      // Local variable - will be deallocated when scope exits
+//                      let tempConnection = HubConnectionBuilder(url: URL(string: self.serverUrl)!)
+//                          .withLogging(minLogLevel: .debug)
+//                          .build()
+//                      tempConnection.start()
+////                      DispatchQueue.global().async {
+////                          tempConnection.invoke(method: "Broadcast", "name", "Hello from \(index) 1_100") { error in
+////                              if let e = error {
+////                                  self.appendMessage(message: "Error: \(e)")
+////                              }
+////                          }
+////                      }
+//
+//                      // Small delay then stop
+//                      usleep(UInt32.random(in: 10000...100000)) // 10-100ms
+//                      tempConnection.stop()
+//                      // tempConnection deallocates here while callback might be pending
+//                  }
+//              }
+
 
 //            (1...1000).forEach {_ in
 //                Task.detached {
@@ -175,7 +242,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             chatHubConnection?.stop()
         }
     }
-    
+
+    @IBAction func restartBtn(_ sender: Any) {
+        restart()
+    }
+
     private func restart() {
         restartQueue.async { [weak self] in
             guard let self else { return }
