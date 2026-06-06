@@ -86,6 +86,15 @@ internal class ReconnectableConnection: Connection {
         }
     }
 
+    func forceStop() {
+        logger.log(logLevel: .info, message: "Received connection force-stop request")
+        // Try to transition out of any live-ish state into .stopping. Fall
+        // through to forceStop on the underlying regardless so we don't get
+        // stuck if state is racing.
+        _ = changeState(from: [.starting, .reconnecting, .running], to: .stopping)
+        underlyingConnection?.forceStop()
+    }
+
     private func startInternal() {
         logger.log(logLevel: .debug, message: "Starting or reconnecting")
         var shouldStart = false

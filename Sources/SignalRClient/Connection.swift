@@ -15,4 +15,16 @@ public protocol Connection {
     func start() -> Void
     func send(data: Data, sendDidComplete: @escaping (_ error: Error?) -> Void) -> Void
     func stop(stopError: Error?) -> Void
+    /// Tear down the underlying transport immediately, bypassing any pending
+    /// handshake bookkeeping. Use when the caller needs the connection killed
+    /// *now* (e.g. to supersede an in-flight attempt). The default
+    /// implementation falls back to `stop(stopError:)` so external implementers
+    /// remain source-compatible.
+    func forceStop() -> Void
+}
+
+extension Connection {
+    public func forceStop() {
+        stop(stopError: nil)
+    }
 }

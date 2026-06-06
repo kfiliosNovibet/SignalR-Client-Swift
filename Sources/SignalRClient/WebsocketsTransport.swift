@@ -67,7 +67,13 @@ public class WebsocketsTransport: NSObject, Transport, URLSessionWebSocketDelega
             // accessing [weak self] during deallocation (objc_loadWeakRetained crash)
             cancellationToken.isCancelled = true
             webSocketTask?.cancel(with: .normalClosure, reason: nil)
-            urlSession?.finishTasksAndInvalidate()
+            // `invalidateAndCancel` (vs the previous `finishTasksAndInvalidate`)
+            // tears the URLSession down immediately, cancelling any
+            // mid-handshake task. `finishTasksAndInvalidate` would have waited
+            // for outstanding tasks to drain — that's the wrong semantics for a
+            // forced WSS close, since the only "task" here is the in-flight
+            // upgrade we're trying to kill.
+            urlSession?.invalidateAndCancel()
     }
 
     public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {

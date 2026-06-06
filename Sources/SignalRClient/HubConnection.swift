@@ -111,6 +111,17 @@ public class HubConnection {
     }
 
     /**
+     Immediately stops the connection, bypassing the normal stop pipeline that
+     waits for any in-progress handshake to complete. Use when a caller needs
+     to forcibly kill an in-flight connection attempt (e.g. when superseding
+     it with a new one) without paying for the WSS handshake first.
+    */
+    public func forceStop() {
+        logger.log(logLevel: .info, message: "Force-stopping hub connection")
+        connection.forceStop()
+    }
+
+    /**
      Allows registering callbacks for client side hub methods.
 
      - parameter method: the name of the client side method to register the callback for

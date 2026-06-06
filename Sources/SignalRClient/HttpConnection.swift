@@ -235,7 +235,7 @@ public class HttpConnection: Connection {
             logger.log(logLevel: .warning, message: "Connection not yet started")
             return
         }
-        
+
         // The transport can be nil if connection was stopped immediately after starting
         // or failed to start. In this case we need to call connectionDidClose ourselves.
         self.startDispatchGroup.notify(queue: DispatchQueue.main) { [weak self] in
@@ -255,6 +255,28 @@ public class HttpConnection: Connection {
                     self.delegate?.connectionDidClose(error: stopError)
                 }
             }
+        }
+    }
+
+    public func forceStop() {
+        logger.log(logLevel: .info, message: "Force-stopping connection (skipping startDispatchGroup)")
+
+        let previousState = changeState(from: nil, to: .stopped)
+        if previousState == .stopped { return }
+        if previousState == .initial { return }
+
+        // Unlike `stop`, we don't wait on `startDispatchGroup.notify(...)` to
+        // fire. That gate is only released by `transportDidOpen` or
+        // `transportDidClose`, so a mid-handshake stop would otherwise sit
+        // until the handshake completes — which is exactly the window that
+        // produces ghost WSS sessions on the wire when a new connection is
+        // superseding an in-flight one. Close the transport directly here.
+        if let t = transport {
+            t.close()
+        }
+        options.callbackQueue.async { [weak self] in
+            guard let self else { return }
+            self.delegate?.connectionDidClose(error: nil)
         }
     }
 
