@@ -95,6 +95,31 @@ internal class ReconnectableConnection: Connection {
         underlyingConnection?.forceStop()
     }
 
+    /**
+     Closes the current underlying connection with `error` because the transport is considered failed (for example
+     after a server timeout), and does nothing unless the connection is running.
+
+     Unlike `stop(stopError:)`, this does not move the connection to the stopping state, so the resulting close is
+     handled like any other unexpected connection loss: the connection goes from running to reconnecting and the
+     reconnect policy decides whether to reconnect.
+     */
+    func failUnderlyingConnection(error: Error) {
+        var runningConnection: Connection?
+        connectionQueue.sync {
+            // Reading the state and the underlying connection together guarantees that the connection being failed is
+            // the one that is running, not one that a reconnect attempt is starting.
+            if state == .running {
+                runningConnection = underlyingConnection
+            }
+        }
+        guard let runningConnection else {
+            logger.log(logLevel: .info, message: "Reconnectable connection is not running. Ignoring request to fail the underlying connection")
+            return
+        }
+        logger.log(logLevel: .info, message: "Failing the underlying connection: \(error)")
+        runningConnection.stop(stopError: error)
+    }
+
     private func startInternal() {
         logger.log(logLevel: .debug, message: "Starting or reconnecting")
         var shouldStart = false

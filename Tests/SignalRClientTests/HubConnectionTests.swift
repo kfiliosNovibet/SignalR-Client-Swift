@@ -1247,6 +1247,144 @@ class HubConnectionTests: XCTestCase {
         hubConnection.stop()
         wait(for: [didCloseExpectation], timeout: 5 /*seconds*/)
     }
+
+    func testThatServerTimeoutIsDisabledByDefault() {
+        XCTAssertNil(HubConnectionOptions().serverTimeout)
+    }
+
+    func testThatServerTimeoutClosesConnectionIfNothingIsReceived() {
+        let didOpenExpectation = expectation(description: "connection opened")
+        let didCloseExpectation = expectation(description: "connection closed")
+
+        let testConnection = TestConnection()
+        let hubConnectionOptions = HubConnectionOptions()
+        hubConnectionOptions.keepAliveInterval = nil
+        hubConnectionOptions.serverTimeout = 0.3
+        let hubConnection = HubConnection(connection: testConnection, hubProtocol: JSONHubProtocol(logger: NullLogger()), hubConnectionOptions: hubConnectionOptions)
+
+        var connectionOpenedTime = DispatchTime.now()
+        let hubConnectionDelegate = TestHubConnectionDelegate()
+        hubConnectionDelegate.connectionDidOpenHandler = { _ in
+            connectionOpenedTime = DispatchTime.now()
+            didOpenExpectation.fulfill()
+        }
+        hubConnectionDelegate.connectionDidCloseHandler = { error in
+            XCTAssertTrue(isServerTimeout(error), "Unexpected error: \(String(describing: error))")
+            let openDurationInSeconds = Double(DispatchTime.now().uptimeNanoseconds - connectionOpenedTime.uptimeNanoseconds) / 1_000_000_000
+            XCTAssertGreaterThan(openDurationInSeconds, 0.2)
+            didCloseExpectation.fulfill()
+        }
+        hubConnection.delegate = hubConnectionDelegate
+
+        hubConnection.start()
+        wait(for: [didOpenExpectation, didCloseExpectation], timeout: 5 /*seconds*/, enforceOrder: true)
+    }
+
+    func testThatPingsFromServerPreventServerTimeout() {
+        let didCloseExpectation = expectation(description: "connection closed")
+
+        let testConnection = TestConnection()
+        let hubConnectionOptions = HubConnectionOptions()
+        hubConnectionOptions.keepAliveInterval = nil
+        hubConnectionOptions.serverTimeout = 0.5
+        let hubConnection = HubConnection(connection: testConnection, hubProtocol: JSONHubProtocol(logger: NullLogger()), hubConnectionOptions: hubConnectionOptions)
+
+        // The server pings every 0.1 seconds for 1.5 seconds, three times the server timeout, and then goes silent
+        let pingCount = 15
+        var deliveredPingCount = 0
+        func deliverPings() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                guard deliveredPingCount < pingCount else { return }
+                testConnection.delegate?.connectionDidReceiveData(connection: testConnection, data: "{\"type\":6}\u{1e}".data(using: .utf8)!)
+                deliveredPingCount += 1
+                deliverPings()
+            }
+        }
+
+        let hubConnectionDelegate = TestHubConnectionDelegate()
+        hubConnectionDelegate.connectionDidOpenHandler = { _ in
+            deliverPings()
+        }
+        hubConnectionDelegate.connectionDidCloseHandler = { error in
+            XCTAssertTrue(isServerTimeout(error), "Unexpected error: \(String(describing: error))")
+            // The connection must only time out after the server stopped pinging
+            XCTAssertEqual(pingCount, deliveredPingCount)
+            didCloseExpectation.fulfill()
+        }
+        hubConnection.delegate = hubConnectionDelegate
+
+        hubConnection.start()
+        wait(for: [didCloseExpectation], timeout: 5 /*seconds*/)
+    }
+
+    func testThatServerTimeoutIsNotUsedWhenInherentKeepAliveIsActive() {
+        let didTimeOutExpectation = expectation(description: "server timeout elapsed")
+        didTimeOutExpectation.isInverted = true
+
+        let testConnection = TestConnection()
+        testConnection.inherentKeepAlive = true
+        let hubConnectionOptions = HubConnectionOptions()
+        hubConnectionOptions.keepAliveInterval = nil
+        hubConnectionOptions.serverTimeout = 0.1
+        let hubConnection = HubConnection(connection: testConnection, hubProtocol: JSONHubProtocol(logger: NullLogger()), hubConnectionOptions: hubConnectionOptions)
+
+        let hubConnectionDelegate = TestHubConnectionDelegate()
+        hubConnectionDelegate.connectionDidCloseHandler = { error in
+            if isServerTimeout(error) {
+                didTimeOutExpectation.fulfill()
+            }
+        }
+        hubConnection.delegate = hubConnectionDelegate
+
+        hubConnection.start()
+        wait(for: [didTimeOutExpectation], timeout: 0.5 /*seconds*/)
+        hubConnection.stop()
+    }
+
+    func testThatServerTimeoutTriggersReconnect() {
+        let willReconnectExpectation = expectation(description: "connection will reconnect")
+        let didReconnectExpectation = expectation(description: "connection reconnected")
+        let didCloseExpectation = expectation(description: "connection closed")
+
+        let connectionFactory = AsyncTestConnectionFactory()
+        let reconnectableConnection = ReconnectableConnection(connectionFactory: connectionFactory.createConnection, reconnectPolicy: DefaultReconnectPolicy(retryIntervals: [.milliseconds(10)]), callbackQueue: connectionFactory.callbackQueue, logger: NullLogger())
+        let hubConnectionOptions = HubConnectionOptions()
+        hubConnectionOptions.keepAliveInterval = nil
+        hubConnectionOptions.serverTimeout = 0.2
+        let hubConnection = HubConnection(connection: reconnectableConnection, hubProtocol: JSONHubProtocol(logger: NullLogger()), hubConnectionOptions: hubConnectionOptions)
+
+        let hubConnectionDelegate = TestHubConnectionDelegate()
+        hubConnectionDelegate.connectionWillReconnectHandler = { error in
+            XCTAssertTrue(isServerTimeout(error), "Unexpected error: \(error)")
+            willReconnectExpectation.fulfill()
+        }
+        hubConnectionDelegate.connectionDidReconnectHandler = {
+            didReconnectExpectation.fulfill()
+            hubConnection.stop()
+        }
+        hubConnectionDelegate.connectionDidCloseHandler = { error in
+            // The server timeout must not close the connection: the only close is the one caused by stop()
+            XCTAssertNil(error)
+            didCloseExpectation.fulfill()
+        }
+        hubConnection.delegate = hubConnectionDelegate
+
+        hubConnection.start()
+        wait(for: [willReconnectExpectation, didReconnectExpectation, didCloseExpectation], timeout: 5 /*seconds*/, enforceOrder: true)
+
+        let startedConnections = connectionFactory.startedConnections
+        XCTAssertEqual(2, startedConnections.count)
+        // The server timeout failed the first connection; the reconnected one was stopped without an error by stop()
+        XCTAssertTrue(isServerTimeout(startedConnections.first?.stopError))
+        XCTAssertNil(startedConnections.last?.stopError)
+    }
+}
+
+fileprivate func isServerTimeout(_ error: Error?) -> Bool {
+    if case .serverTimeout? = error as? SignalRError {
+        return true
+    }
+    return false
 }
 
 class TestHubConnectionDelegate: HubConnectionDelegate {

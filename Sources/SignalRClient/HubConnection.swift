@@ -30,6 +30,11 @@ public class HubConnection {
     private let keepAliveIntervalInSeconds: Double?
     private var keepAlivePingTask: DispatchWorkItem?
 
+    private let serverTimeoutInSeconds: Double?
+    // Both only accessed on hubConnectionQueue. serverTimeoutTask is non-nil while the server timeout is running.
+    private var serverTimeoutTask: DispatchWorkItem?
+    private var lastMessageReceivedTime = DispatchTime.now()
+
     private let callbackQueue: DispatchQueue
     fileprivate var transport: Transport?
 
@@ -64,6 +69,7 @@ public class HubConnection {
         self.connection = connection
         self.hubProtocol = hubProtocol
         self.keepAliveIntervalInSeconds = hubConnectionOptions.keepAliveInterval
+        self.serverTimeoutInSeconds = hubConnectionOptions.serverTimeout
         self.callbackQueue = hubConnectionOptions.callbackQueue
         self.logger = logger
         self.hubConnectionQueue = DispatchQueue(label: "SignalR.hubconnection.queue")
@@ -107,6 +113,9 @@ public class HubConnection {
     */
     public func stop() {
         logger.log(logLevel: .info, message: "Stopping hub connection")
+        hubConnectionQueue.sync {
+            cleanUpServerTimeout()
+        }
         connection.stop(stopError: nil)
     }
 
@@ -118,6 +127,9 @@ public class HubConnection {
     */
     public func forceStop() {
         logger.log(logLevel: .info, message: "Force-stopping hub connection")
+        hubConnectionQueue.sync {
+            cleanUpServerTimeout()
+        }
         connection.forceStop()
     }
 
@@ -378,6 +390,9 @@ public class HubConnection {
         var shouldHandleHandshake = false
         var originalHandshakeStatus: HandshakeStatus = .needsHandling(false)
         hubConnectionQueue.sync {
+            // Every frame, including the pings the server sends to keep the connection alive, shows that the server is
+            // alive. Recording it is what resets the server timeout (see checkServerTimeout).
+            lastMessageReceivedTime = DispatchTime.now()
             if !handshakeStatus.isHandled {
                 shouldHandleHandshake = true
                 originalHandshakeStatus = handshakeStatus
@@ -414,6 +429,8 @@ public class HubConnection {
             // that completes an automatic reconnect. resetKeepAlive() mutates keepAlivePingTask on
             // hubConnectionQueue, and this method never runs on that queue.
             resetKeepAlive()
+            // The same applies to the server timeout
+            startServerTimeout()
         }
 
         do {
@@ -497,6 +514,7 @@ public class HubConnection {
 
         hubConnectionQueue.sync {
             cleanUpKeepAlive()
+            cleanUpServerTimeout()
         }
 
         var invocationHandlers: [ServerInvocationHandler] = []
@@ -529,6 +547,8 @@ public class HubConnection {
     fileprivate func connectionWillReconnect(error: Error) {
         hubConnectionQueue.sync {
             handshakeStatus = .needsHandling(true)
+            // The server timeout is started again by the handshake that completes the reconnect
+            cleanUpServerTimeout()
         }
         callbackQueue.async { [weak self] in
             guard let self = self else { return }
@@ -605,6 +625,78 @@ public class HubConnection {
         //Note: needs to be run on hubConnectionQueue to avoid races
         keepAlivePingTask?.cancel()
         keepAlivePingTask = nil
+    }
+
+    private func startServerTimeout() {
+        guard let serverTimeout = serverTimeoutInSeconds, serverTimeout > 0 else {
+            logger.log(logLevel: .debug, message: "Not starting server timeout - server timeout disabled")
+            return
+        }
+
+        if connection.inherentKeepAlive {
+            logger.log(logLevel: .debug, message: "Not starting server timeout - inherent keep alive")
+            return
+        }
+
+        logger.log(logLevel: .debug, message: "Starting server timeout of \(serverTimeout) seconds")
+        hubConnectionQueue.sync {
+            lastMessageReceivedTime = DispatchTime.now()
+            scheduleServerTimeoutCheck(deadline: lastMessageReceivedTime + serverTimeout)
+        }
+    }
+
+    private func scheduleServerTimeoutCheck(deadline: DispatchTime) {
+        //Note: needs to be run on hubConnectionQueue to avoid races
+        serverTimeoutTask?.cancel()
+        let serverTimeoutTask = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.checkServerTimeout()
+        }
+        self.serverTimeoutTask = serverTimeoutTask
+        hubConnectionQueue.asyncAfter(deadline: deadline, execute: serverTimeoutTask)
+    }
+
+    private func checkServerTimeout() {
+        // Runs on hubConnectionQueue as the current serverTimeoutTask: a task is always cancelled, on this queue, before
+        // it is replaced or cleaned up, so a stale one never starts. Frames only record when they were received instead
+        // of rescheduling the timer, so a busy connection does not create a timer per frame; the check is rescheduled
+        // for the rest of the interval instead.
+        guard let serverTimeout = serverTimeoutInSeconds, handshakeStatus.isHandled else {
+            serverTimeoutTask = nil
+            return
+        }
+
+        let deadline = lastMessageReceivedTime + serverTimeout
+        if DispatchTime.now() < deadline {
+            scheduleServerTimeoutCheck(deadline: deadline)
+            return
+        }
+
+        serverTimeoutTask = nil
+        logger.log(logLevel: .error, message: "Server timeout of \(serverTimeout) seconds elapsed without receiving a message from the server")
+        // Fail the transport off hubConnectionQueue: the connection may report the close synchronously and
+        // connectionDidClose syncs onto hubConnectionQueue.
+        DispatchQueue.global().async { [weak self] in
+            guard let self else { return }
+            self.failTransport(error: SignalRError.serverTimeout)
+        }
+    }
+
+    private func failTransport(error: Error) {
+        if let reconnectableConnection = connection as? ReconnectableConnection {
+            // stop() would move the reconnectable connection to the stopping state, which turns the resulting close into
+            // a clean stop and suppresses the reconnect. Failing only the underlying connection makes the close look like
+            // a connection loss, so the reconnectable connection goes from running to reconnecting.
+            reconnectableConnection.failUnderlyingConnection(error: error)
+        } else {
+            connection.stop(stopError: error)
+        }
+    }
+
+    private func cleanUpServerTimeout() {
+        //Note: needs to be run on hubConnectionQueue to avoid races
+        serverTimeoutTask?.cancel()
+        serverTimeoutTask = nil
     }
 }
 
