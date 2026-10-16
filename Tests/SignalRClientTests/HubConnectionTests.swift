@@ -1203,6 +1203,50 @@ class HubConnectionTests: XCTestCase {
         waitForExpectations(timeout: 1 /*seconds*/)
         hubConnection.stop()
     }
+
+    func testThatKeepAlivePingIsSentAfterReconnect() {
+        let didReconnectExpectation = expectation(description: "connection reconnected")
+        let didSendPingAfterReconnectExpectation = expectation(description: "ping sent after reconnect")
+        didSendPingAfterReconnectExpectation.expectedFulfillmentCount = 2
+        didSendPingAfterReconnectExpectation.assertForOverFulfill = false
+        let didCloseExpectation = expectation(description: "connection closed")
+
+        let connectionFactory = AsyncTestConnectionFactory()
+        connectionFactory.sendHandler = { connection, message in
+            // Only pings sent on a connection other than the first one count
+            if message.contains("\"type\":6") && connection !== connectionFactory.startedConnections.first {
+                didSendPingAfterReconnectExpectation.fulfill()
+            }
+        }
+
+        // The reconnect delay is longer than the keep-alive interval, so the keep-alive timer started for the first
+        // connection fires while the connection is reconnecting, which stops the keep-alive. Pings sent after the
+        // reconnect can therefore only come from the keep-alive being restarted by the reconnect handshake.
+        let reconnectableConnection = ReconnectableConnection(connectionFactory: connectionFactory.createConnection, reconnectPolicy: DefaultReconnectPolicy(retryIntervals: [.milliseconds(300)]), callbackQueue: connectionFactory.callbackQueue, logger: NullLogger())
+        let hubConnectionOptions = HubConnectionOptions()
+        hubConnectionOptions.keepAliveInterval = 0.1
+        let hubConnection = HubConnection(connection: reconnectableConnection, hubProtocol: JSONHubProtocol(logger: NullLogger()), hubConnectionOptions: hubConnectionOptions)
+
+        let hubConnectionDelegate = TestHubConnectionDelegate()
+        hubConnectionDelegate.connectionDidOpenHandler = { _ in
+            connectionFactory.startedConnections.last!.simulateConnectionLoss(error: SignalRError.invalidOperation(message: "connection lost"))
+        }
+        hubConnectionDelegate.connectionDidReconnectHandler = {
+            didReconnectExpectation.fulfill()
+        }
+        hubConnectionDelegate.connectionDidCloseHandler = { error in
+            XCTAssertNil(error)
+            didCloseExpectation.fulfill()
+        }
+        hubConnection.delegate = hubConnectionDelegate
+
+        hubConnection.start()
+        wait(for: [didReconnectExpectation, didSendPingAfterReconnectExpectation], timeout: 5 /*seconds*/)
+        XCTAssertEqual(2, connectionFactory.startedConnections.count)
+
+        hubConnection.stop()
+        wait(for: [didCloseExpectation], timeout: 5 /*seconds*/)
+    }
 }
 
 class TestHubConnectionDelegate: HubConnectionDelegate {
