@@ -356,7 +356,8 @@ public class HubConnection {
     }
 
     private func ensureConnectionStarted(errorHandler: @escaping (Error)->Void) -> Bool {
-        guard handshakeStatus.isHandled else {
+        let isHandled = hubConnectionQueue.sync { handshakeStatus.isHandled }
+        guard isHandled else {
             logger.log(logLevel: .error, message: "Attempting to send data before connection has been started.")
             callbackQueue.async {
                 errorHandler(SignalRError.invalidOperation(message: "Attempting to send data before connection has been started."))
@@ -370,13 +371,24 @@ public class HubConnection {
         logger.log(logLevel: .debug, message: "Data received")
 
         var data = data
-        if !handshakeStatus.isHandled {
+        // Atomically claim the handshake under hubConnectionQueue so that handshakeStatus and
+        // keepAlivePingTask are never mutated off-queue. This avoids data races with
+        // ensureConnectionStarted / connectionDidClose / connectionWillReconnect and the
+        // keep-alive task accesses.
+        var shouldHandleHandshake = false
+        var originalHandshakeStatus: HandshakeStatus = .needsHandling(false)
+        hubConnectionQueue.sync {
+            if !handshakeStatus.isHandled {
+                shouldHandleHandshake = true
+                originalHandshakeStatus = handshakeStatus
+                handshakeStatus = .handled
+                keepAlivePingTask = DispatchWorkItem {}
+            }
+        }
+        if shouldHandleHandshake {
             logger.log(logLevel: .debug, message: "Processing handshake response: \(String(data: data, encoding: .utf8) ?? "(invalid)")")
             let (error, remainingData) = HandshakeProtocol.parseHandshakeResponse(data: data)
             data = remainingData
-            let originalHandshakeStatus = handshakeStatus
-            handshakeStatus = .handled
-            keepAlivePingTask = DispatchWorkItem{}
             if let e = error {
                 // TODO: (BUG) if this fails when reconnecting the callback should not be called and there
                 // will be no further reconnect attempts
@@ -495,7 +507,9 @@ public class HubConnection {
         for serverInvocationHandler in invocationHandlers {
             serverInvocationHandler.raiseError(error: invocationError)
         }
-        handshakeStatus = .needsHandling(false)
+        hubConnectionQueue.sync {
+            handshakeStatus = .needsHandling(false)
+        }
         callbackQueue.async { [weak self] in
             guard let self = self else { return }
             self.delegate?.connectionDidClose(error: error)
@@ -510,7 +524,9 @@ public class HubConnection {
     }
 
     fileprivate func connectionWillReconnect(error: Error) {
-        handshakeStatus = .needsHandling(true)
+        hubConnectionQueue.sync {
+            handshakeStatus = .needsHandling(true)
+        }
         callbackQueue.async { [weak self] in
             guard let self = self else { return }
             self.delegate?.connectionWillReconnect(error: error)
