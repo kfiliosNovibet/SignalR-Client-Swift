@@ -13,13 +13,13 @@ class TransportTypeTests: XCTestCase {
 
     func testFlagValues() {
         XCTAssertEqual(0b0001, TransportType.longPolling.rawValue)
-        XCTAssertEqual(0b0010, TransportType.serverSentEvents.rawValue)
         XCTAssertEqual(0b0100, TransportType.webSockets.rawValue)
     }
 
     func testThatCanCreateTransportTypeFromValidTransportName() {
         XCTAssertEqual(TransportType.longPolling, try! TransportType.fromString(transportName: "LongPolling"))
-        XCTAssertEqual(TransportType.serverSentEvents, try! TransportType.fromString(transportName: "ServerSentEvents"))
+        // Server-Sent Events is not supported and is mapped to long polling
+        XCTAssertEqual(TransportType.longPolling, try! TransportType.fromString(transportName: "ServerSentEvents"))
         XCTAssertEqual(TransportType.webSockets, try! TransportType.fromString(transportName: "WebSockets"))
     }
 

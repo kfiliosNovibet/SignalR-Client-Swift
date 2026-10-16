@@ -33,7 +33,8 @@ class NegotiationResponseTests: XCTestCase {
         XCTAssertEqual(.webSockets, negotiationResponse.availableTransports[0].transportType)
         XCTAssertEqual([.text, .binary], negotiationResponse.availableTransports[0].transferFormats)
 
-        XCTAssertEqual(.serverSentEvents, negotiationResponse.availableTransports[1].transportType)
+        // Server-Sent Events is not supported and is mapped to long polling
+        XCTAssertEqual(.longPolling, negotiationResponse.availableTransports[1].transportType)
         XCTAssertEqual([.text], negotiationResponse.availableTransports[1].transferFormats)
 
         XCTAssertEqual(.longPolling, negotiationResponse.availableTransports[2].transportType)

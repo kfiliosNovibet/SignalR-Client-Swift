@@ -1231,6 +1231,9 @@ class TestHubConnectionDelegate: HubConnectionDelegate {
     func connectionDidReconnect() {
         connectionDidReconnectHandler?()
     }
+
+    func connectionDidFail(_ session: URLSession?, task: URLSessionTask?, at: TransportDidFailPoint, didCompleteWithError error: (any Error)?) {
+    }
 }
 
 class TestConnection: Connection {

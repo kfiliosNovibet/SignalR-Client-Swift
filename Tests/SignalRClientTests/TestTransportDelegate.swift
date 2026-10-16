@@ -24,4 +24,7 @@ class TestTransportDelegate: TransportDelegate {
     func transportDidClose(_ error: Error?) -> Void {
         transportDidCloseHandler?(error)
     }
+
+    func transportDidFail(_ session: URLSession?, task: URLSessionTask?, at: TransportDidFailPoint, didCompleteWithError error: Error?) -> Void {
+    }
 }
