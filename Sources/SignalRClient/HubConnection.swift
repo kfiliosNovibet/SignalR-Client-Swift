@@ -409,8 +409,11 @@ public class HubConnection {
                     guard let self else { return }
                     self.delegate?.connectionDidOpen(hubConnection: self)
                 }
-                resetKeepAlive()
             }
+            // Keep-alive has to be (re)started after every successful handshake, including the one
+            // that completes an automatic reconnect. resetKeepAlive() mutates keepAlivePingTask on
+            // hubConnectionQueue, and this method never runs on that queue.
+            resetKeepAlive()
         }
 
         do {
